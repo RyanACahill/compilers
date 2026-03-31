@@ -25,11 +25,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("fs"));
 const ProgramRunner_1 = require("./ProgramRunner");
+/**
+ * Entry point for the compiler.
+ * Reads input file from command line and passes it to ProgramRunner.
+ */
 const filePath = process.argv[2];
 if (!filePath) {
     console.error("Usage: node distrib/compiler/Compiler.js <source-file>");
     process.exit(1);
 }
+// Read entire source file
 const source = fs.readFileSync(filePath, "utf-8");
+// Begin compilation pipeline (currently only lexer phase)
 ProgramRunner_1.ProgramRunner.run(source);
 //# sourceMappingURL=Compiler.js.map

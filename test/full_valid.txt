@@ -1,0 +1,72 @@
+{
+  /* variable declarations */
+  int a
+  int b
+  string s
+  boolean t
+  boolean f
+
+  /* assignments */
+  a = 1
+  b = 2 + 3
+  s = "hello world"
+  t = true
+  f = false
+
+  /* prints */
+  print(a)
+  print(b)
+  print(s)
+  print(t)
+  print(f)
+
+  /* boolean comparisons */
+  if (a == 1) {
+    print("a is one")
+  }
+
+  if (b != 1) {
+    print("b is not one")
+  }
+
+  /* nested block */
+  {
+    int c
+    c = 4 + a
+    print(c)
+
+    if (c == 5) {
+      print("c is five")
+    }
+  }
+
+  /* while loop */
+  while (a != 5) {
+    print(a)
+    a = 1 + a
+  }
+
+  /* more nested blocks and comments */
+  {
+    string x
+    x = "abc"
+    print(x)
+
+    /* inner scope */
+    {
+      boolean y
+      y = (a == 5)
+      print(y)
+    }
+  }
+
+  /* empty string test */
+  s = ""
+  print(s)
+
+  /* single-character ids */
+  int z
+  z = 9
+  print(z)
+}
+$

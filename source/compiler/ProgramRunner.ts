@@ -2,53 +2,92 @@ import { Lexer } from "../lexer/Lexer";
 import { ErrorReporter } from "../util/ErrorReporter";
 
 /**
- * ProgramRunner handles multi-program input.
- * Programs are separated by the '$' end-of-program marker.
+ * ProgramInfo stores one extracted program along with where it begins in the file.
+ */
+interface ProgramInfo {
+    source: string;
+    number: number;
+    startLine: number;
+}
+
+/**
+ * ProgramRunner breaks the input file into separate programs using '$'
+ * and runs the lexer on each one individually.
  */
 export class ProgramRunner {
-
     public static run(source: string): void {
+        const programs: ProgramInfo[] = [];
 
-        const programs = source.split("$");
+        let currentProgram = "";
+        let currentLine = 1;
+        let programStartLine = 1;
+        let programNumber = 1;
 
-        programs.forEach((program, index) => {
+        for (let i = 0; i < source.length; i++) {
+            const char = source[i];
+            currentProgram += char;
 
-            // Skip empty programs (common with trailing $)
-            if (program.trim().length === 0) return;
+            if (char === "$") {
+                programs.push({
+                    source: currentProgram,
+                    number: programNumber,
+                    startLine: programStartLine
+                });
 
-            console.log(`\n================ PROGRAM ${index + 1} ================`);
+                currentProgram = "";
+                programNumber++;
+                programStartLine = currentLine;
+            }
+
+            if (char === "\n") {
+                currentLine++;
+            }
+        }
+
+        // Handle a leftover final program with no ending $
+        if (currentProgram.trim().length > 0) {
+            programs.push({
+                source: currentProgram,
+                number: programNumber,
+                startLine: programStartLine
+            });
+        }
+
+        for (const program of programs) {
+            if (program.source.trim().length === 0) {
+                continue;
+            }
+
+            console.log(`\n================ PROGRAM ${program.number} ================`);
 
             const lexer = new Lexer();
-            const result = lexer.lex(program + "$");
+            const result = lexer.lex(program.source, program.startLine);
 
-            // Determine success/failure
             if (result.success) {
                 console.log("Lex successful.");
             } else {
                 console.log("Lex unsuccessful.");
             }
 
-            // Print summary of diagnostics
             if (result.errors.length > 0 || result.warnings.length > 0) {
-
                 console.log("\nSummary:");
 
                 if (result.errors.length > 0) {
                     console.log("Errors:");
-                    result.errors.forEach(e =>
-                        console.log(`- ${ErrorReporter.format(e)}`)
-                    );
+                    for (const error of result.errors) {
+                        console.log(`- ${ErrorReporter.format(error)}`);
+                    }
                 }
 
                 if (result.warnings.length > 0) {
                     console.log("Warnings:");
-                    result.warnings.forEach(w =>
-                        console.log(`- ${ErrorReporter.format(w)}`)
-                    );
+                    for (const warning of result.warnings) {
+                        console.log(`- ${ErrorReporter.format(warning)}`);
+                    }
                 }
             }
 
             console.log();
-        });
+        }
     }
 }

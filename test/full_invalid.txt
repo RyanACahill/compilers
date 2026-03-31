@@ -1,0 +1,25 @@
+{ 
+  int abc
+}$
+{
+  int a
+  a = 5 @
+}$
+{
+  int a
+  a ! 5
+}$
+{
+  print("hello)
+}$
+{
+  print("HELLO!")
+}$
+{
+  /* this comment never ends
+}
+{
+  string s
+  s = "ok"
+  print(s)
+}

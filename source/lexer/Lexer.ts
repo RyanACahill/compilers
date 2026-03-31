@@ -4,10 +4,7 @@ import { Logger } from "../util/Logger";
 import { Diagnostic, ErrorReporter } from "../util/ErrorReporter";
 
 /**
- * LexResult packages everything produced by the lexer for a single program.
- * Returning a structured result instead of only tokens makes it easy for the
- * ProgramRunner to decide whether lexing succeeded and to print a clean summary
- * of all warnings and errors at the end.
+ * LexResult stores the full result of lexing one program.
  */
 export interface LexResult {
     tokens: Token[];
@@ -17,21 +14,8 @@ export interface LexResult {
 }
 
 /**
- * The Lexer is responsible for scanning source code left-to-right and converting
- * raw characters into a stream of tokens that match the project grammar.
- *
- * This lexer:
- * - supports multiple token categories defined by TokenType
- * - tracks line and column positions for precise diagnostics
- * - ignores comment blocks bounded by /* and *\/
- * - records warnings and errors for later summary output
- * - returns success only when no lexing errors were found
- *
- * Important grammar rules enforced here:
- * - identifiers must be exactly one lowercase letter
- * - strings may contain only lowercase letters and spaces
- * - valid boolean operators are == and !=
- * - comments are ignored by the lexer
+ * Lexer converts source code into tokens while tracking both file-relative
+ * and program-relative positions for all diagnostics.
  */
 export class Lexer {
     private tokens: Token[] = [];
@@ -39,15 +23,12 @@ export class Lexer {
     private warnings: Diagnostic[] = [];
 
     /**
-     * Performs lexical analysis on one program's source text.
-     * The lexer walks through the input one character at a time and decides
-     * whether each character begins a token, whitespace region, comment,
-     * or invalid sequence.
+     * Lex one program.
      *
-     * @param source The raw source code for one program.
-     * @returns A LexResult containing tokens, diagnostics, and success status.
+     * @param source The source code for this program.
+     * @param startingFileLine The line number in the original file where this program begins.
      */
-    public lex(source: string): LexResult {
+    public lex(source: string, startingFileLine: number = 1): LexResult {
         this.tokens = [];
         this.errors = [];
         this.warnings = [];
@@ -55,54 +36,56 @@ export class Lexer {
         Logger.log("\nLEXER → Starting lexical analysis...\n");
 
         let i = 0;
-        let line = 1;
-        let column = 1;
+
+        // Absolute position in the file
+        let fileLine = startingFileLine;
+        let fileColumn = 1;
+
+        // Position relative to the current program
+        let programLine = 1;
+        let programColumn = 1;
 
         while (i < source.length) {
             const char = source[i];
 
-            /**
-             * Newlines must advance the line counter and reset the column.
-             * This keeps all later error messages accurate.
-             */
+            // Handle newlines
             if (char === "\n") {
-                line++;
-                column = 1;
+                fileLine++;
+                fileColumn = 1;
+                programLine++;
+                programColumn = 1;
                 i++;
                 continue;
             }
 
-            /**
-             * General whitespace outside strings is ignored by the lexer.
-             * Newlines are handled above because they affect position tracking
-             * differently than spaces and tabs.
-             */
+            // Ignore whitespace outside strings/comments
             if (/\s/.test(char)) {
-                column++;
+                fileColumn++;
+                programColumn++;
                 i++;
                 continue;
             }
 
-            /**
-             * Comment handling:
-             * When the lexer sees /* it consumes everything until *\/.
-             * Comments are ignored entirely and do not generate tokens.
-             * If the closing delimiter is never found, that is treated as
-             * a warning according to the project guidance.
-             */
+            // Handle comment blocks
             if (char === "/" && source[i + 1] === "*") {
-                const commentStartLine = line;
-                const commentStartColumn = column;
+                const commentFileLine = fileLine;
+                const commentFileColumn = fileColumn;
+                const commentProgramLine = programLine;
+                const commentProgramColumn = programColumn;
 
                 i += 2;
-                column += 2;
+                fileColumn += 2;
+                programColumn += 2;
 
                 while (i < source.length && !(source[i] === "*" && source[i + 1] === "/")) {
                     if (source[i] === "\n") {
-                        line++;
-                        column = 1;
+                        fileLine++;
+                        fileColumn = 1;
+                        programLine++;
+                        programColumn = 1;
                     } else {
-                        column++;
+                        fileColumn++;
+                        programColumn++;
                     }
                     i++;
                 }
@@ -110,101 +93,100 @@ export class Lexer {
                 if (i >= source.length) {
                     this.warning(
                         "Unterminated comment block. Reached end of input before finding '*/'.",
-                        commentStartLine,
-                        commentStartColumn
+                        commentFileLine,
+                        commentFileColumn,
+                        commentProgramLine,
+                        commentProgramColumn
                     );
                     break;
                 }
 
-                /**
-                 * Skip the closing comment delimiter and continue lexing.
-                 */
                 i += 2;
-                column += 2;
+                fileColumn += 2;
+                programColumn += 2;
                 continue;
             }
 
-            /**
-             * Single-character and paired-symbol token recognition.
-             * These are handled first because they do not require building
-             * longer words from multiple letters.
-             */
             switch (char) {
                 case "{":
-                    this.add(TokenType.LBrace, char, line, column);
+                    this.add(TokenType.LBrace, char, fileLine, fileColumn);
                     break;
 
                 case "}":
-                    this.add(TokenType.RBrace, char, line, column);
+                    this.add(TokenType.RBrace, char, fileLine, fileColumn);
                     break;
 
                 case "(":
-                    this.add(TokenType.LParen, char, line, column);
+                    this.add(TokenType.LParen, char, fileLine, fileColumn);
                     break;
 
                 case ")":
-                    this.add(TokenType.RParen, char, line, column);
+                    this.add(TokenType.RParen, char, fileLine, fileColumn);
                     break;
 
                 case "+":
-                    this.add(TokenType.IntOp, char, line, column);
+                    this.add(TokenType.IntOp, char, fileLine, fileColumn);
                     break;
 
                 case "$":
-                    this.add(TokenType.EOP, char, line, column);
+                    this.add(TokenType.EOP, char, fileLine, fileColumn);
                     break;
 
-                /**
-                 * '=' may either be assignment or part of the equality operator.
-                 */
                 case "=":
                     if (source[i + 1] === "=") {
-                        this.add(TokenType.BoolOp, "==", line, column);
+                        this.add(TokenType.BoolOp, "==", fileLine, fileColumn);
                         i++;
-                        column++;
+                        fileColumn++;
+                        programColumn++;
                     } else {
-                        this.add(TokenType.Assign, "=", line, column);
+                        this.add(TokenType.Assign, "=", fileLine, fileColumn);
                     }
                     break;
 
-                /**
-                 * '!' is only valid when immediately followed by '='.
-                 * A standalone exclamation point is not part of the grammar.
-                 */
                 case "!":
                     if (source[i + 1] === "=") {
-                        this.add(TokenType.BoolOp, "!=", line, column);
+                        this.add(TokenType.BoolOp, "!=", fileLine, fileColumn);
                         i++;
-                        column++;
+                        fileColumn++;
+                        programColumn++;
                     } else {
                         this.error(
                             "Unexpected '!'. Only '!=' is valid in this language.",
-                            line,
-                            column
+                            fileLine,
+                            fileColumn,
+                            programLine,
+                            programColumn
                         );
                     }
                     break;
 
-                /**
-                 * String handling:
-                 * Strings begin and end with double quotes.
-                 * Inside a string, only lowercase letters and spaces are legal.
-                 * Strings may not span multiple lines in this language.
-                 */
                 case "\"": {
-                    const startLine = line;
-                    const startColumn = column;
+                    const startFileLine = fileLine;
+                    const startFileColumn = fileColumn;
+                    const startProgramLine = programLine;
+                    const startProgramColumn = programColumn;
+
                     let str = "";
 
                     i++;
-                    column++;
+                    fileColumn++;
+                    programColumn++;
 
-                    while (i < source.length && source[i] !== "\"") {
+                    let terminated = false;
+
+                    while (i < source.length) {
+                        if (source[i] === "\"") {
+                            terminated = true;
+                            break;
+                        }
+
                         if (source[i] === "\n") {
                             this.error(
                                 "Unterminated string literal. Strings cannot span multiple lines.",
-                                startLine,
-                                startColumn
+                                startFileLine,
+                                startFileColumn,
+                                startProgramLine,
+                                startProgramColumn
                             );
                             break;
                         }
@@ -212,71 +194,55 @@ export class Lexer {
                         if (!/[a-z ]/.test(source[i])) {
                             this.error(
                                 `Invalid character '${source[i]}' inside string literal. Only lowercase letters and spaces are allowed.`,
-                                line,
-                                column
+                                fileLine,
+                                fileColumn,
+                                programLine,
+                                programColumn
                             );
                         }
 
                         str += source[i];
                         i++;
-                        column++;
+                        fileColumn++;
+                        programColumn++;
                     }
 
-                    /**
-                     * If the loop ended because input ran out, the string never closed.
-                     */
                     if (i >= source.length) {
                         this.error(
                             "Unterminated string literal. Reached end of input before finding closing quote.",
-                            startLine,
-                            startColumn
+                            startFileLine,
+                            startFileColumn,
+                            startProgramLine,
+                            startProgramColumn
                         );
                         break;
                     }
 
-                    /**
-                     * Only add the string token if a closing quote was actually found.
-                     * The stored value excludes the quotation marks themselves.
-                     */
-                    if (source[i] === "\"") {
-                        this.add(TokenType.StringLiteral, str, startLine, startColumn);
+                    if (terminated) {
+                        this.add(TokenType.StringLiteral, str, startFileLine, startFileColumn);
                     }
+
                     break;
                 }
 
-                /**
-                 * The default branch handles multi-character words, digits, and illegal
-                 * characters not recognized by the grammar.
-                 */
                 default:
-                    /**
-                     * Digits are simple one-character tokens in this grammar.
-                     */
                     if (/[0-9]/.test(char)) {
-                        this.add(TokenType.Digit, char, line, column);
-                    }
-                    /**
-                     * Lowercase letter sequences may be keywords, boolean literals,
-                     * type names, or identifiers. Since the grammar restricts
-                     * identifiers to a single character, longer non-keyword words
-                     * are invalid identifiers.
-                     */
-                    else if (/[a-z]/.test(char)) {
+                        this.add(TokenType.Digit, char, fileLine, fileColumn);
+                    } else if (/[a-z]/.test(char)) {
                         let word = "";
-                        const startCol = column;
+                        const startFileColumn = fileColumn;
+                        const startProgramColumn = programColumn;
 
                         while (i < source.length && /[a-z]/.test(source[i])) {
                             word += source[i];
                             i++;
-                            column++;
+                            fileColumn++;
+                            programColumn++;
                         }
 
-                        /**
-                         * We advance one character too far in the loop logic above,
-                         * so step back once to let the outer loop continue correctly.
-                         */
                         i--;
-                        column--;
+                        fileColumn--;
+                        programColumn--;
 
                         const keywords: Record<string, TokenType> = {
                             print: TokenType.Print,
@@ -290,49 +256,43 @@ export class Lexer {
                         };
 
                         if (keywords[word]) {
-                            this.add(keywords[word], word, line, startCol);
+                            this.add(keywords[word], word, fileLine, startFileColumn);
                         } else if (word.length === 1) {
-                            this.add(TokenType.Id, word, line, startCol);
+                            this.add(TokenType.Id, word, fileLine, startFileColumn);
                         } else {
                             this.error(
                                 `Invalid identifier '${word}'. Identifiers must be exactly one lowercase letter.`,
-                                line,
-                                startCol
+                                fileLine,
+                                startFileColumn,
+                                programLine,
+                                startProgramColumn
                             );
                         }
-                    }
-                    /**
-                     * Any character that does not fit the grammar is reported as illegal.
-                     */
-                    else {
+                    } else {
                         this.error(
                             `Illegal character '${char}'. This character is not part of the language grammar.`,
-                            line,
-                            column
+                            fileLine,
+                            fileColumn,
+                            programLine,
+                            programColumn
                         );
                     }
             }
 
-            /**
-             * Move to the next character after processing the current one.
-             * Some branches manually advance i/column further when needed.
-             */
             i++;
-            column++;
+            fileColumn++;
+            programColumn++;
         }
 
-        /**
-         * If no end-of-program token was found, insert one automatically and
-         * issue a warning. This follows the project requirement that certain
-         * recoverable omissions should be treated as warnings rather than errors.
-         */
         if (!this.tokens.some((t) => t.type === TokenType.EOP)) {
             this.warning(
                 "Missing end-of-program marker '$'. The lexer inserted one automatically.",
-                line,
-                column
+                fileLine,
+                fileColumn,
+                programLine,
+                programColumn
             );
-            this.add(TokenType.EOP, "$", line, column);
+            this.add(TokenType.EOP, "$", fileLine, fileColumn);
         }
 
         Logger.log(
@@ -348,8 +308,8 @@ export class Lexer {
     }
 
     /**
-     * Creates a token, stores it in the token stream, and prints it in verbose mode.
-     * Centralizing token creation here keeps lexer output consistent.
+     * Create and store a token, then print it in verbose mode.
+     * Tokens keep file-based positions, since those are the most useful later.
      */
     private add(type: TokenType, value: string, line: number, column: number): void {
         const token = new Token(type, value, line, column);
@@ -358,16 +318,23 @@ export class Lexer {
     }
 
     /**
-     * Records a fatal lexing issue.
-     * Errors indicate the source contains invalid syntax at the lexical level.
+     * Record a lexer error.
      */
-    private error(message: string, line: number, column: number): void {
+    private error(
+        message: string,
+        fileLine: number,
+        fileColumn: number,
+        programLine: number,
+        programColumn: number
+    ): void {
         const diagnostic: Diagnostic = {
             kind: "ERROR",
             phase: "LEXER",
             message,
-            line,
-            column
+            fileLine,
+            fileColumn,
+            programLine,
+            programColumn
         };
 
         this.errors.push(diagnostic);
@@ -375,17 +342,23 @@ export class Lexer {
     }
 
     /**
-     * Records a non-fatal issue.
-     * Warnings indicate something questionable or recoverable was found, but
-     * the lexer can still finish processing the program.
+     * Record a lexer warning.
      */
-    private warning(message: string, line: number, column: number): void {
+    private warning(
+        message: string,
+        fileLine: number,
+        fileColumn: number,
+        programLine: number,
+        programColumn: number
+    ): void {
         const diagnostic: Diagnostic = {
             kind: "WARNING",
             phase: "LEXER",
             message,
-            line,
-            column
+            fileLine,
+            fileColumn,
+            programLine,
+            programColumn
         };
 
         this.warnings.push(diagnostic);
