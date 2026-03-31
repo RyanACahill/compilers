@@ -1,0 +1,18 @@
+{
+  int a
+  string s
+  boolean b
+
+  a = 1 + 2
+  s = "hello world"
+  b = (a == 3)
+
+  if (b == true) {
+    print(s)
+  }
+
+  while (a != 5) {
+    a = 1 + a
+  }
+}
+$

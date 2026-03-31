@@ -1,0 +1,14 @@
+{
+  "name": "cmpt432-compiler",
+  "version": "1.0.0",
+  "description": "CMPT 432 Compiler Project - Phase 1 (Lexer)",
+  "main": "distrib/compiler/Compiler.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "start": "node distrib/compiler/Compiler.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
