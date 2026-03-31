@@ -2,13 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProgramRunner = void 0;
 const Lexer_1 = require("../lexer/Lexer");
+const Parser_1 = require("../parser/Parser");
 const ErrorReporter_1 = require("../util/ErrorReporter");
-/**
- * ProgramRunner breaks the input file into separate programs using '$'
- * and runs the lexer on each one individually.
- */
 class ProgramRunner {
     static run(source) {
+        var _a;
         const programs = [];
         let currentProgram = "";
         let currentLine = 1;
@@ -31,7 +29,6 @@ class ProgramRunner {
                 currentLine++;
             }
         }
-        // Handle a leftover final program with no ending $
         if (currentProgram.trim().length > 0) {
             programs.push({
                 source: currentProgram,
@@ -45,25 +42,62 @@ class ProgramRunner {
             }
             console.log(`\n================ PROGRAM ${program.number} ================`);
             const lexer = new Lexer_1.Lexer();
-            const result = lexer.lex(program.source, program.startLine);
-            if (result.success) {
+            const lexResult = lexer.lex(program.source, program.startLine);
+            if (lexResult.success) {
                 console.log("Lex successful.");
             }
             else {
                 console.log("Lex unsuccessful.");
             }
-            if (result.errors.length > 0 || result.warnings.length > 0) {
-                console.log("\nSummary:");
-                if (result.errors.length > 0) {
+            if (lexResult.errors.length > 0 || lexResult.warnings.length > 0) {
+                console.log("\nLex Summary:");
+                if (lexResult.errors.length > 0) {
                     console.log("Errors:");
-                    for (const error of result.errors) {
+                    for (const error of lexResult.errors) {
                         console.log(`- ${ErrorReporter_1.ErrorReporter.format(error)}`);
                     }
                 }
-                if (result.warnings.length > 0) {
+                if (lexResult.warnings.length > 0) {
                     console.log("Warnings:");
-                    for (const warning of result.warnings) {
+                    for (const warning of lexResult.warnings) {
                         console.log(`- ${ErrorReporter_1.ErrorReporter.format(warning)}`);
+                    }
+                }
+            }
+            if (!lexResult.success) {
+                console.log("Parse skipped due to lex errors.\n");
+                continue;
+            }
+            const parser = new Parser_1.Parser();
+            const parseResult = parser.parse(lexResult.tokens);
+            if (parseResult.success) {
+                console.log("Parse successful.");
+                console.log("\nCST:");
+                console.log((_a = parseResult.cst) === null || _a === void 0 ? void 0 : _a.toString());
+            }
+            else {
+                console.log("Parse unsuccessful.");
+            }
+            if (parseResult.errors.length > 0 ||
+                parseResult.warnings.length > 0 ||
+                parseResult.hints.length > 0) {
+                console.log("\nParse Summary:");
+                if (parseResult.errors.length > 0) {
+                    console.log("Errors:");
+                    for (const error of parseResult.errors) {
+                        console.log(`- ${ErrorReporter_1.ErrorReporter.format(error)}`);
+                    }
+                }
+                if (parseResult.warnings.length > 0) {
+                    console.log("Warnings:");
+                    for (const warning of parseResult.warnings) {
+                        console.log(`- ${ErrorReporter_1.ErrorReporter.format(warning)}`);
+                    }
+                }
+                if (parseResult.hints.length > 0) {
+                    console.log("Hints:");
+                    for (const hint of parseResult.hints) {
+                        console.log(`- ${ErrorReporter_1.ErrorReporter.format(hint)}`);
                     }
                 }
             }

@@ -1,0 +1,17 @@
+{
+  int a
+  string s
+  boolean b
+  a = 1 + 2
+  s = "hello"
+  b = (a != 3)
+  print(a)
+  print(s)
+  if (b == true) {
+    print("yes")
+  }
+  while (a != 5) {
+    a = 1 + a
+  }
+}
+$

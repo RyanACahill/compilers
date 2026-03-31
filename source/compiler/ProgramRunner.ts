@@ -1,19 +1,13 @@
 import { Lexer } from "../lexer/Lexer";
+import { Parser } from "../parser/Parser";
 import { ErrorReporter } from "../util/ErrorReporter";
 
-/**
- * ProgramInfo stores one extracted program along with where it begins in the file.
- */
 interface ProgramInfo {
     source: string;
     number: number;
     startLine: number;
 }
 
-/**
- * ProgramRunner breaks the input file into separate programs using '$'
- * and runs the lexer on each one individually.
- */
 export class ProgramRunner {
     public static run(source: string): void {
         const programs: ProgramInfo[] = [];
@@ -44,7 +38,6 @@ export class ProgramRunner {
             }
         }
 
-        // Handle a leftover final program with no ending $
         if (currentProgram.trim().length > 0) {
             programs.push({
                 source: currentProgram,
@@ -61,28 +54,73 @@ export class ProgramRunner {
             console.log(`\n================ PROGRAM ${program.number} ================`);
 
             const lexer = new Lexer();
-            const result = lexer.lex(program.source, program.startLine);
+            const lexResult = lexer.lex(program.source, program.startLine);
 
-            if (result.success) {
+            if (lexResult.success) {
                 console.log("Lex successful.");
             } else {
                 console.log("Lex unsuccessful.");
             }
 
-            if (result.errors.length > 0 || result.warnings.length > 0) {
-                console.log("\nSummary:");
+            if (lexResult.errors.length > 0 || lexResult.warnings.length > 0) {
+                console.log("\nLex Summary:");
 
-                if (result.errors.length > 0) {
+                if (lexResult.errors.length > 0) {
                     console.log("Errors:");
-                    for (const error of result.errors) {
+                    for (const error of lexResult.errors) {
                         console.log(`- ${ErrorReporter.format(error)}`);
                     }
                 }
 
-                if (result.warnings.length > 0) {
+                if (lexResult.warnings.length > 0) {
                     console.log("Warnings:");
-                    for (const warning of result.warnings) {
+                    for (const warning of lexResult.warnings) {
                         console.log(`- ${ErrorReporter.format(warning)}`);
+                    }
+                }
+            }
+
+            if (!lexResult.success) {
+                console.log("Parse skipped due to lex errors.\n");
+                continue;
+            }
+
+            const parser = new Parser();
+            const parseResult = parser.parse(lexResult.tokens);
+
+            if (parseResult.success) {
+                console.log("Parse successful.");
+                console.log("\nCST:");
+                console.log(parseResult.cst?.toString());
+            } else {
+                console.log("Parse unsuccessful.");
+            }
+
+            if (
+                parseResult.errors.length > 0 ||
+                parseResult.warnings.length > 0 ||
+                parseResult.hints.length > 0
+            ) {
+                console.log("\nParse Summary:");
+
+                if (parseResult.errors.length > 0) {
+                    console.log("Errors:");
+                    for (const error of parseResult.errors) {
+                        console.log(`- ${ErrorReporter.format(error)}`);
+                    }
+                }
+
+                if (parseResult.warnings.length > 0) {
+                    console.log("Warnings:");
+                    for (const warning of parseResult.warnings) {
+                        console.log(`- ${ErrorReporter.format(warning)}`);
+                    }
+                }
+
+                if (parseResult.hints.length > 0) {
+                    console.log("Hints:");
+                    for (const hint of parseResult.hints) {
+                        console.log(`- ${ErrorReporter.format(hint)}`);
                     }
                 }
             }
