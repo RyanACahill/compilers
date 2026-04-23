@@ -20,14 +20,14 @@
 <pre id="output"></pre>
 
 <script type="module">
-import { BrowserRunner } from "./distrib/compiler/BrowserRunner.js";
+import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=3";
 
 const button = document.getElementById("compileBtn");
 const input = document.getElementById("input");
 const output = document.getElementById("output");
 
 button.addEventListener("click", () => {
-    const result = BrowserRunner.run(input.value);
+    const result = CompilerModule.BrowserRunner.run(input.value);
     output.textContent = result;
 });
 </script>
