@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { ProgramRunner } from "./ProgramRunner";
+import { ProgramRunner } from "./ProgramRunner.js";
 
 /**
  * Entry point for the compiler.

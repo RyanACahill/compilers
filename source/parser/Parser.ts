@@ -1,8 +1,8 @@
-import { Token } from "../lexer/Token";
-import { TokenType } from "../lexer/TokenType";
-import { Logger } from "../util/Logger";
-import { CST } from "./CST";
-import { Diagnostic, ErrorReporter } from "../util/ErrorReporter";
+import { Token } from "../lexer/Token.js";
+import { TokenType } from "../lexer/TokenType.js";
+import { Logger } from "../util/Logger.js";
+import { CST } from "./CST.js";
+import { Diagnostic, ErrorReporter } from "../util/ErrorReporter.js";
 
 export interface ParseResult {
     success: boolean;

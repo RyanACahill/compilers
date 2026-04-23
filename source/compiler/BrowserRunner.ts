@@ -1,6 +1,6 @@
-import { Lexer } from "../lexer/Lexer";
-import { Parser } from "../parser/Parser";
-import { ErrorReporter } from "../util/ErrorReporter";
+import { Lexer } from "../lexer/Lexer.js";
+import { Parser } from "../parser/Parser.js";
+import { ErrorReporter } from "../util/ErrorReporter.js";
 
 export class BrowserRunner {
     public static run(source: string): string {

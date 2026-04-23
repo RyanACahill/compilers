@@ -1,4 +1,4 @@
-import { CSTNode } from "./CSTNode";
+import { CSTNode } from "./CSTNode.js";
 
 /**
  * CST manages construction of the Concrete Syntax Tree during parsing.

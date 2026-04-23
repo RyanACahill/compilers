@@ -1,7 +1,7 @@
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
-import { Logger } from "../util/Logger";
-import { Diagnostic, ErrorReporter } from "../util/ErrorReporter";
+import { Token } from "./Token.js";
+import { TokenType } from "./TokenType.js";
+import { Logger } from "../util/Logger.js";
+import { Diagnostic, ErrorReporter } from "../util/ErrorReporter.js";
 
 /**
  * Encapsulates the result of lexical analysis for a single program.

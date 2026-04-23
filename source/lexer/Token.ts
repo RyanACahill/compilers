@@ -1,4 +1,4 @@
-import { TokenType } from "./TokenType";
+import { TokenType } from "./TokenType.js";
 
 /**
  * Token represents a single lexical unit produced by the lexer.
