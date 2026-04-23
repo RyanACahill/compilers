@@ -1,6 +1,7 @@
 import { Lexer } from "../lexer/Lexer.js";
 import { Parser } from "../parser/Parser.js";
 import { ErrorReporter } from "../util/ErrorReporter.js";
+import { Logger } from "../util/Logger.js";
 
 interface ProgramInfo {
     source: string;
@@ -51,37 +52,37 @@ export class ProgramRunner {
                 continue;
             }
 
-            console.log(`\n================ PROGRAM ${program.number} ================`);
+            Logger.log(`\n================ PROGRAM ${program.number} ================`);
 
             const lexer = new Lexer();
             const lexResult = lexer.lex(program.source, program.startLine);
 
             if (lexResult.success) {
-                console.log("Lex successful.");
+                Logger.log("Lex successful.");
             } else {
-                console.log("Lex unsuccessful.");
+                Logger.log("Lex unsuccessful.");
             }
 
             if (lexResult.errors.length > 0 || lexResult.warnings.length > 0) {
-                console.log("\nLex Summary:");
+                Logger.log("\nLex Summary:");
 
                 if (lexResult.errors.length > 0) {
-                    console.log("Errors:");
+                    Logger.log("Errors:");
                     for (const error of lexResult.errors) {
-                        console.log(`- ${ErrorReporter.format(error)}`);
+                        Logger.log(`- ${ErrorReporter.format(error)}`);
                     }
                 }
 
                 if (lexResult.warnings.length > 0) {
-                    console.log("Warnings:");
+                    Logger.log("Warnings:");
                     for (const warning of lexResult.warnings) {
-                        console.log(`- ${ErrorReporter.format(warning)}`);
+                        Logger.log(`- ${ErrorReporter.format(warning)}`);
                     }
                 }
             }
 
             if (!lexResult.success) {
-                console.log("Parse skipped due to lex errors.\n");
+                Logger.log("Parse skipped due to lex errors.\n");
                 continue;
             }
 
@@ -89,11 +90,11 @@ export class ProgramRunner {
             const parseResult = parser.parse(lexResult.tokens);
 
             if (parseResult.success) {
-                console.log("Parse successful.");
-                console.log("\nCST:");
-                console.log(parseResult.cst?.toString());
+                Logger.log("Parse successful.");
+                Logger.log("\nCST:");
+                Logger.log(parseResult.cst?.toString() ?? "");
             } else {
-                console.log("Parse unsuccessful.");
+                Logger.log("Parse unsuccessful.");
             }
 
             if (
@@ -101,31 +102,31 @@ export class ProgramRunner {
                 parseResult.warnings.length > 0 ||
                 parseResult.hints.length > 0
             ) {
-                console.log("\nParse Summary:");
+                Logger.log("\nParse Summary:");
 
                 if (parseResult.errors.length > 0) {
-                    console.log("Errors:");
+                    Logger.log("Errors:");
                     for (const error of parseResult.errors) {
-                        console.log(`- ${ErrorReporter.format(error)}`);
+                        Logger.log(`- ${ErrorReporter.format(error)}`);
                     }
                 }
 
                 if (parseResult.warnings.length > 0) {
-                    console.log("Warnings:");
+                    Logger.log("Warnings:");
                     for (const warning of parseResult.warnings) {
-                        console.log(`- ${ErrorReporter.format(warning)}`);
+                        Logger.log(`- ${ErrorReporter.format(warning)}`);
                     }
                 }
 
                 if (parseResult.hints.length > 0) {
-                    console.log("Hints:");
+                    Logger.log("Hints:");
                     for (const hint of parseResult.hints) {
-                        console.log(`- ${ErrorReporter.format(hint)}`);
+                        Logger.log(`- ${ErrorReporter.format(hint)}`);
                     }
                 }
             }
 
-            console.log();
+            Logger.log("");
         }
     }
 }

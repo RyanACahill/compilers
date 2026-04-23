@@ -7,5 +7,6 @@
     "outDir": "distrib",
     "strict": true
   },
-  "include": ["source/**/*"]
+  "include": ["source/**/*"],
+  "exclude": ["source/compiler/Compiler.ts"]
 }

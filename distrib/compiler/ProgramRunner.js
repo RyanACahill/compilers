@@ -1,9 +1,10 @@
 import { Lexer } from "../lexer/Lexer.js";
 import { Parser } from "../parser/Parser.js";
 import { ErrorReporter } from "../util/ErrorReporter.js";
+import { Logger } from "../util/Logger.js";
 export class ProgramRunner {
     static run(source) {
-        var _a;
+        var _a, _b;
         const programs = [];
         let currentProgram = "";
         let currentLine = 1;
@@ -37,68 +38,68 @@ export class ProgramRunner {
             if (program.source.trim().length === 0) {
                 continue;
             }
-            console.log(`\n================ PROGRAM ${program.number} ================`);
+            Logger.log(`\n================ PROGRAM ${program.number} ================`);
             const lexer = new Lexer();
             const lexResult = lexer.lex(program.source, program.startLine);
             if (lexResult.success) {
-                console.log("Lex successful.");
+                Logger.log("Lex successful.");
             }
             else {
-                console.log("Lex unsuccessful.");
+                Logger.log("Lex unsuccessful.");
             }
             if (lexResult.errors.length > 0 || lexResult.warnings.length > 0) {
-                console.log("\nLex Summary:");
+                Logger.log("\nLex Summary:");
                 if (lexResult.errors.length > 0) {
-                    console.log("Errors:");
+                    Logger.log("Errors:");
                     for (const error of lexResult.errors) {
-                        console.log(`- ${ErrorReporter.format(error)}`);
+                        Logger.log(`- ${ErrorReporter.format(error)}`);
                     }
                 }
                 if (lexResult.warnings.length > 0) {
-                    console.log("Warnings:");
+                    Logger.log("Warnings:");
                     for (const warning of lexResult.warnings) {
-                        console.log(`- ${ErrorReporter.format(warning)}`);
+                        Logger.log(`- ${ErrorReporter.format(warning)}`);
                     }
                 }
             }
             if (!lexResult.success) {
-                console.log("Parse skipped due to lex errors.\n");
+                Logger.log("Parse skipped due to lex errors.\n");
                 continue;
             }
             const parser = new Parser();
             const parseResult = parser.parse(lexResult.tokens);
             if (parseResult.success) {
-                console.log("Parse successful.");
-                console.log("\nCST:");
-                console.log((_a = parseResult.cst) === null || _a === void 0 ? void 0 : _a.toString());
+                Logger.log("Parse successful.");
+                Logger.log("\nCST:");
+                Logger.log((_b = (_a = parseResult.cst) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "");
             }
             else {
-                console.log("Parse unsuccessful.");
+                Logger.log("Parse unsuccessful.");
             }
             if (parseResult.errors.length > 0 ||
                 parseResult.warnings.length > 0 ||
                 parseResult.hints.length > 0) {
-                console.log("\nParse Summary:");
+                Logger.log("\nParse Summary:");
                 if (parseResult.errors.length > 0) {
-                    console.log("Errors:");
+                    Logger.log("Errors:");
                     for (const error of parseResult.errors) {
-                        console.log(`- ${ErrorReporter.format(error)}`);
+                        Logger.log(`- ${ErrorReporter.format(error)}`);
                     }
                 }
                 if (parseResult.warnings.length > 0) {
-                    console.log("Warnings:");
+                    Logger.log("Warnings:");
                     for (const warning of parseResult.warnings) {
-                        console.log(`- ${ErrorReporter.format(warning)}`);
+                        Logger.log(`- ${ErrorReporter.format(warning)}`);
                     }
                 }
                 if (parseResult.hints.length > 0) {
-                    console.log("Hints:");
+                    Logger.log("Hints:");
                     for (const hint of parseResult.hints) {
-                        console.log(`- ${ErrorReporter.format(hint)}`);
+                        Logger.log(`- ${ErrorReporter.format(hint)}`);
                     }
                 }
             }
-            console.log();
+            Logger.log("");
         }
     }
 }
