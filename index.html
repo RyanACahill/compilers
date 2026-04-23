@@ -4,23 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compiler</title>
+
+    <style>
+        body {
+            font-family: monospace;
+            margin: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea, pre {
+            width: 100%;
+            height: 400px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: auto;
+            background: #f9f9f9;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        h3 {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
 
 <h2>CMPT 432 Compiler</h2>
 
-<label for="input">Source Code:</label><br>
+<div class="container">
+    <!-- INPUT -->
+    <div class="panel">
+        <h3>Input</h3>
+<label for="input">Input</label>
+<textarea id="input" placeholder="Enter your program here..." title="Compiler input">
+{intfintif=2}$
+</textarea>    </div>
 
-<textarea id="input" rows="15" cols="80" placeholder="Enter your program here...">{intfintif=3}$</textarea>
-
-<br><br>
+    <!-- OUTPUT -->
+    <div class="panel">
+        <h3>Output</h3>
+        <pre id="output"></pre>
+    </div>
+</div>
 
 <button id="compileBtn">Compile</button>
 
-<pre id="output"></pre>
-
 <script type="module">
-import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=3";
+import * as CompilerModule from "./distrib/compiler/BrowserRunner.js";
 
 const button = document.getElementById("compileBtn");
 const input = document.getElementById("input");
