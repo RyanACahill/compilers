@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Lexer = void 0;
-const Token_1 = require("./Token");
-const TokenType_1 = require("./TokenType");
-const Logger_1 = require("../util/Logger");
-const ErrorReporter_1 = require("../util/ErrorReporter");
+import { Token } from "./Token";
+import { TokenType } from "./TokenType";
+import { Logger } from "../util/Logger";
+import { ErrorReporter } from "../util/ErrorReporter";
 /**
  * The Lexer is responsible for transforming raw source code into a sequence
  * of tokens based on the language grammar.
@@ -20,7 +17,7 @@ const ErrorReporter_1 = require("../util/ErrorReporter");
  * This lexer supports "compact code" (no spaces) by greedily matching keywords
  * before falling back to single-character identifiers.
  */
-class Lexer {
+export class Lexer {
     constructor() {
         this.tokens = [];
         this.errors = [];
@@ -37,7 +34,7 @@ class Lexer {
         this.tokens = [];
         this.errors = [];
         this.warnings = [];
-        Logger_1.Logger.log("\nLEXER → Starting lexical analysis...\n");
+        Logger.log("\nLEXER → Starting lexical analysis...\n");
         let i = 0;
         // Absolute file position (used for final reporting)
         let fileLine = startingFileLine;
@@ -113,35 +110,35 @@ class Lexer {
              */
             switch (char) {
                 case "{":
-                    this.add(TokenType_1.TokenType.LBrace, "{", fileLine, fileColumn);
+                    this.add(TokenType.LBrace, "{", fileLine, fileColumn);
                     break;
                 case "}":
-                    this.add(TokenType_1.TokenType.RBrace, "}", fileLine, fileColumn);
+                    this.add(TokenType.RBrace, "}", fileLine, fileColumn);
                     break;
                 case "(":
-                    this.add(TokenType_1.TokenType.LParen, "(", fileLine, fileColumn);
+                    this.add(TokenType.LParen, "(", fileLine, fileColumn);
                     break;
                 case ")":
-                    this.add(TokenType_1.TokenType.RParen, ")", fileLine, fileColumn);
+                    this.add(TokenType.RParen, ")", fileLine, fileColumn);
                     break;
                 case "+":
-                    this.add(TokenType_1.TokenType.IntOp, "+", fileLine, fileColumn);
+                    this.add(TokenType.IntOp, "+", fileLine, fileColumn);
                     break;
                 case "$":
-                    this.add(TokenType_1.TokenType.EOP, "$", fileLine, fileColumn);
+                    this.add(TokenType.EOP, "$", fileLine, fileColumn);
                     break;
                 /**
                  * '=' may represent assignment or equality.
                  */
                 case "=":
                     if (source[i + 1] === "=") {
-                        this.add(TokenType_1.TokenType.BoolOp, "==", fileLine, fileColumn);
+                        this.add(TokenType.BoolOp, "==", fileLine, fileColumn);
                         i++;
                         fileColumn++;
                         programColumn++;
                     }
                     else {
-                        this.add(TokenType_1.TokenType.Assign, "=", fileLine, fileColumn);
+                        this.add(TokenType.Assign, "=", fileLine, fileColumn);
                     }
                     break;
                 /**
@@ -149,7 +146,7 @@ class Lexer {
                  */
                 case "!":
                     if (source[i + 1] === "=") {
-                        this.add(TokenType_1.TokenType.BoolOp, "!=", fileLine, fileColumn);
+                        this.add(TokenType.BoolOp, "!=", fileLine, fileColumn);
                         i++;
                         fileColumn++;
                         programColumn++;
@@ -193,7 +190,7 @@ class Lexer {
                         programColumn++;
                     }
                     if (terminated) {
-                        this.add(TokenType_1.TokenType.StringLiteral, str, startFL, startFC);
+                        this.add(TokenType.StringLiteral, str, startFL, startFC);
                     }
                     break;
                 }
@@ -206,7 +203,7 @@ class Lexer {
                  */
                 default:
                     if (/[0-9]/.test(char)) {
-                        this.add(TokenType_1.TokenType.Digit, char, fileLine, fileColumn);
+                        this.add(TokenType.Digit, char, fileLine, fileColumn);
                     }
                     /**
                      * Keyword vs Identifier logic:
@@ -215,8 +212,8 @@ class Lexer {
                     else if (/[a-z]/.test(char)) {
                         const prev = this.previousToken();
                         // After a TYPE, force single-character ID
-                        if (prev !== null && prev.type === TokenType_1.TokenType.Type) {
-                            this.add(TokenType_1.TokenType.Id, char, fileLine, fileColumn);
+                        if (prev !== null && prev.type === TokenType.Type) {
+                            this.add(TokenType.Id, char, fileLine, fileColumn);
                         }
                         else {
                             const match = this.tryConsumeKeyword(source, i);
@@ -227,7 +224,7 @@ class Lexer {
                                 programColumn += match.value.length - 1;
                             }
                             else {
-                                this.add(TokenType_1.TokenType.Id, char, fileLine, fileColumn);
+                                this.add(TokenType.Id, char, fileLine, fileColumn);
                             }
                         }
                     }
@@ -246,11 +243,11 @@ class Lexer {
          * Ensure every program ends with '$'.
          * If missing, insert automatically and warn.
          */
-        if (!this.tokens.some(t => t.type === TokenType_1.TokenType.EOP)) {
+        if (!this.tokens.some(t => t.type === TokenType.EOP)) {
             this.warning("Missing '$'. Auto-inserted.", fileLine, fileColumn, programLine, programColumn);
-            this.add(TokenType_1.TokenType.EOP, "$", fileLine, fileColumn);
+            this.add(TokenType.EOP, "$", fileLine, fileColumn);
         }
-        Logger_1.Logger.log(`\nLEXER → Completed with ${this.errors.length} error(s), ${this.warnings.length} warning(s).\n`);
+        Logger.log(`\nLEXER → Completed with ${this.errors.length} error(s), ${this.warnings.length} warning(s).\n`);
         return {
             tokens: this.tokens,
             errors: this.errors,
@@ -264,14 +261,14 @@ class Lexer {
      */
     tryConsumeKeyword(source, index) {
         const keywords = [
-            { value: "boolean", type: TokenType_1.TokenType.Type },
-            { value: "string", type: TokenType_1.TokenType.Type },
-            { value: "while", type: TokenType_1.TokenType.While },
-            { value: "print", type: TokenType_1.TokenType.Print },
-            { value: "false", type: TokenType_1.TokenType.BoolVal },
-            { value: "true", type: TokenType_1.TokenType.BoolVal },
-            { value: "int", type: TokenType_1.TokenType.Type },
-            { value: "if", type: TokenType_1.TokenType.If }
+            { value: "boolean", type: TokenType.Type },
+            { value: "string", type: TokenType.Type },
+            { value: "while", type: TokenType.While },
+            { value: "print", type: TokenType.Print },
+            { value: "false", type: TokenType.BoolVal },
+            { value: "true", type: TokenType.BoolVal },
+            { value: "int", type: TokenType.Type },
+            { value: "if", type: TokenType.If }
         ];
         for (const k of keywords) {
             if (source.startsWith(k.value, index)) {
@@ -284,9 +281,9 @@ class Lexer {
      * Adds a token to the stream and logs it in verbose mode.
      */
     add(type, value, line, column) {
-        const token = new Token_1.Token(type, value, line, column);
+        const token = new Token(type, value, line, column);
         this.tokens.push(token);
-        Logger_1.Logger.log("LEXER → " + token.toString());
+        Logger.log("LEXER → " + token.toString());
     }
     previousToken() {
         return this.tokens.length > 0
@@ -307,7 +304,7 @@ class Lexer {
             programColumn
         };
         this.errors.push(d);
-        Logger_1.Logger.error(ErrorReporter_1.ErrorReporter.format(d));
+        Logger.error(ErrorReporter.format(d));
     }
     /**
      * Records a warning.
@@ -323,8 +320,7 @@ class Lexer {
             programColumn
         };
         this.warnings.push(d);
-        Logger_1.Logger.warning(ErrorReporter_1.ErrorReporter.format(d));
+        Logger.warning(ErrorReporter.format(d));
     }
 }
-exports.Lexer = Lexer;
 //# sourceMappingURL=Lexer.js.map

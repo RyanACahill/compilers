@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Token = void 0;
 /**
  * Token represents a single lexical unit produced by the lexer.
  * Each token includes:
@@ -8,7 +5,7 @@ exports.Token = void 0;
  * - value: actual text from source
  * - line/column: precise location in source code
  */
-class Token {
+export class Token {
     constructor(type, value, line, column) {
         this.type = type;
         this.value = value;
@@ -22,5 +19,4 @@ class Token {
         return `[${this.type}] '${this.value}' @ (${this.line}:${this.column})`;
     }
 }
-exports.Token = Token;
 //# sourceMappingURL=Token.js.map

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiler</title>
+</head>
+<body>
+
+<h2>CMPT 432 Compiler</h2>
+
+<label for="input">Source Code:</label><br>
+
+<textarea id="input" rows="15" cols="80" placeholder="Enter your program here...">
+{intfintif=2}$
+</textarea>
+
+<br><br>
+
+<button onclick="runCompiler()">Compile</button>
+
+<pre id="output"></pre>
+
+<script type="module">
+import { BrowserRunner } from "./distrib/compiler/BrowserRunner.js";
+
+window.runCompiler = function () {
+    const input = document.getElementById("input").value;
+    const result = BrowserRunner.run(input);
+    document.getElementById("output").textContent = result;
+};
+</script>
+
+</body>
+</html>
