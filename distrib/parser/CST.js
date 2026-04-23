@@ -1,12 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CST = void 0;
-const CSTNode_js_1 = require("./CSTNode.js");
+import { CSTNode } from "./CSTNode.js";
 /**
  * CST manages construction of the Concrete Syntax Tree during parsing.
  * The parser adds branch nodes for grammar rules and leaf nodes for matched tokens.
  */
-class CST {
+export class CST {
     constructor() {
         this.root = null;
         this.current = null;
@@ -15,7 +12,7 @@ class CST {
      * Adds a branch node and moves the current pointer into it.
      */
     addBranchNode(name) {
-        const node = new CSTNode_js_1.CSTNode(name);
+        const node = new CSTNode(name);
         if (this.root === null) {
             this.root = node;
             this.current = node;
@@ -29,7 +26,7 @@ class CST {
      * Adds a leaf node under the current branch.
      */
     addLeafNode(name) {
-        const node = new CSTNode_js_1.CSTNode(name);
+        const node = new CSTNode(name);
         if (this.root === null) {
             this.root = node;
             this.current = node;
@@ -70,4 +67,3 @@ class CST {
         return output;
     }
 }
-exports.CST = CST;

@@ -1,30 +1,5 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs = __importStar(require("fs"));
-const ProgramRunner_js_1 = require("./ProgramRunner.js");
+import * as fs from "fs";
+import { ProgramRunner } from "./ProgramRunner.js";
 /**
  * Entry point for the compiler.
  * Reads input file from command line and passes it to ProgramRunner.
@@ -37,4 +12,4 @@ if (!filePath) {
 // Read entire source file
 const source = fs.readFileSync(filePath, "utf-8");
 // Begin compilation pipeline (currently only lexer phase)
-ProgramRunner_js_1.ProgramRunner.run(source);
+ProgramRunner.run(source);

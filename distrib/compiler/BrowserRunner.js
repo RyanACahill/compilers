@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BrowserRunner = void 0;
-const Lexer_js_1 = require("../lexer/Lexer.js");
-const Parser_js_1 = require("../parser/Parser.js");
-const ErrorReporter_js_1 = require("../util/ErrorReporter.js");
-class BrowserRunner {
+import { Lexer } from "../lexer/Lexer.js";
+import { Parser } from "../parser/Parser.js";
+import { ErrorReporter } from "../util/ErrorReporter.js";
+export class BrowserRunner {
     static run(source) {
         var _a;
         let output = "";
@@ -16,17 +13,17 @@ class BrowserRunner {
                 continue;
             program += "$";
             output += `\n================ PROGRAM ${programNumber} ================\n`;
-            const lexer = new Lexer_js_1.Lexer();
+            const lexer = new Lexer();
             const lexResult = lexer.lex(program);
             output += lexResult.success ? "Lex successful.\n" : "Lex unsuccessful.\n";
             if (!lexResult.success) {
                 for (const err of lexResult.errors) {
-                    output += ErrorReporter_js_1.ErrorReporter.format(err) + "\n";
+                    output += ErrorReporter.format(err) + "\n";
                 }
                 programNumber++;
                 continue;
             }
-            const parser = new Parser_js_1.Parser();
+            const parser = new Parser();
             const parseResult = parser.parse(lexResult.tokens);
             output += parseResult.success ? "Parse successful.\n" : "Parse unsuccessful.\n";
             if (parseResult.success) {
@@ -35,7 +32,7 @@ class BrowserRunner {
             }
             else {
                 for (const err of parseResult.errors) {
-                    output += ErrorReporter_js_1.ErrorReporter.format(err) + "\n";
+                    output += ErrorReporter.format(err) + "\n";
                 }
             }
             programNumber++;
@@ -43,4 +40,3 @@ class BrowserRunner {
         return output;
     }
 }
-exports.BrowserRunner = BrowserRunner;

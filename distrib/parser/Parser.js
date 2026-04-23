@@ -1,23 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Parser = void 0;
-const TokenType_js_1 = require("../lexer/TokenType.js");
-const Logger_js_1 = require("../util/Logger.js");
-const CST_js_1 = require("./CST.js");
-const ErrorReporter_js_1 = require("../util/ErrorReporter.js");
+import { TokenType } from "../lexer/TokenType.js";
+import { Logger } from "../util/Logger.js";
+import { CST } from "./CST.js";
+import { ErrorReporter } from "../util/ErrorReporter.js";
 /**
  * Recursive descent parser for the CMPT 432 project grammar.
  * It consumes tokens from the lexer, validates grammar structure,
  * and builds a Concrete Syntax Tree.
  */
-class Parser {
+export class Parser {
     constructor() {
         this.tokens = [];
         this.currentIndex = 0;
         this.errors = [];
         this.warnings = [];
         this.hints = [];
-        this.cst = new CST_js_1.CST();
+        this.cst = new CST();
     }
     /**
      * Parse a full token stream representing one program.
@@ -28,10 +25,10 @@ class Parser {
         this.errors = [];
         this.warnings = [];
         this.hints = [];
-        this.cst = new CST_js_1.CST();
-        Logger_js_1.Logger.log("\nPARSER → Starting parse...\n");
+        this.cst = new CST();
+        Logger.log("\nPARSER → Starting parse...\n");
         this.parseProgram();
-        Logger_js_1.Logger.log(`\nPARSER → Completed with ${this.errors.length} error(s), ${this.warnings.length} warning(s), ${this.hints.length} hint(s).\n`);
+        Logger.log(`\nPARSER → Completed with ${this.errors.length} error(s), ${this.warnings.length} warning(s), ${this.hints.length} hint(s).\n`);
         return {
             success: this.errors.length === 0,
             cst: this.errors.length === 0 ? this.cst : null,
@@ -47,7 +44,7 @@ class Parser {
         this.logProduction("Program");
         this.cst.addBranchNode("<Program>");
         this.parseBlock();
-        this.match(TokenType_js_1.TokenType.EOP, "$");
+        this.match(TokenType.EOP, "$");
         this.cst.moveUp();
     }
     /**
@@ -56,9 +53,9 @@ class Parser {
     parseBlock() {
         this.logProduction("Block");
         this.cst.addBranchNode("<Block>");
-        this.match(TokenType_js_1.TokenType.LBrace, "{");
+        this.match(TokenType.LBrace, "{");
         this.parseStatementList();
-        this.match(TokenType_js_1.TokenType.RBrace, "}");
+        this.match(TokenType.RBrace, "}");
         this.cst.moveUp();
     }
     /**
@@ -93,22 +90,22 @@ class Parser {
             this.cst.moveUp();
             return;
         }
-        if (token.type === TokenType_js_1.TokenType.Print) {
+        if (token.type === TokenType.Print) {
             this.parsePrintStatement();
         }
-        else if (token.type === TokenType_js_1.TokenType.Id) {
+        else if (token.type === TokenType.Id) {
             this.parseAssignmentStatement();
         }
-        else if (token.type === TokenType_js_1.TokenType.Type) {
+        else if (token.type === TokenType.Type) {
             this.parseVarDecl();
         }
-        else if (token.type === TokenType_js_1.TokenType.While) {
+        else if (token.type === TokenType.While) {
             this.parseWhileStatement();
         }
-        else if (token.type === TokenType_js_1.TokenType.If) {
+        else if (token.type === TokenType.If) {
             this.parseIfStatement();
         }
-        else if (token.type === TokenType_js_1.TokenType.LBrace) {
+        else if (token.type === TokenType.LBrace) {
             this.parseBlock();
         }
         else {
@@ -122,10 +119,10 @@ class Parser {
     parsePrintStatement() {
         this.logProduction("PrintStatement");
         this.cst.addBranchNode("<PrintStatement>");
-        this.match(TokenType_js_1.TokenType.Print, "print");
-        this.match(TokenType_js_1.TokenType.LParen, "(");
+        this.match(TokenType.Print, "print");
+        this.match(TokenType.LParen, "(");
         this.parseExpr();
-        this.match(TokenType_js_1.TokenType.RParen, ")");
+        this.match(TokenType.RParen, ")");
         this.cst.moveUp();
     }
     /**
@@ -135,7 +132,7 @@ class Parser {
         this.logProduction("AssignmentStatement");
         this.cst.addBranchNode("<AssignmentStatement>");
         this.parseId();
-        this.match(TokenType_js_1.TokenType.Assign, "=");
+        this.match(TokenType.Assign, "=");
         this.parseExpr();
         this.cst.moveUp();
     }
@@ -155,7 +152,7 @@ class Parser {
     parseWhileStatement() {
         this.logProduction("WhileStatement");
         this.cst.addBranchNode("<WhileStatement>");
-        this.match(TokenType_js_1.TokenType.While, "while");
+        this.match(TokenType.While, "while");
         this.parseBooleanExpr();
         this.parseBlock();
         this.cst.moveUp();
@@ -166,7 +163,7 @@ class Parser {
     parseIfStatement() {
         this.logProduction("IfStatement");
         this.cst.addBranchNode("<IfStatement>");
-        this.match(TokenType_js_1.TokenType.If, "if");
+        this.match(TokenType.If, "if");
         this.parseBooleanExpr();
         this.parseBlock();
         this.cst.moveUp();
@@ -186,17 +183,17 @@ class Parser {
             this.cst.moveUp();
             return;
         }
-        if (token.type === TokenType_js_1.TokenType.Digit) {
+        if (token.type === TokenType.Digit) {
             this.parseIntExpr();
         }
-        else if (token.type === TokenType_js_1.TokenType.StringLiteral) {
+        else if (token.type === TokenType.StringLiteral) {
             this.parseStringExpr();
         }
-        else if (token.type === TokenType_js_1.TokenType.BoolVal ||
-            token.type === TokenType_js_1.TokenType.LParen) {
+        else if (token.type === TokenType.BoolVal ||
+            token.type === TokenType.LParen) {
             this.parseBooleanExpr();
         }
-        else if (token.type === TokenType_js_1.TokenType.Id) {
+        else if (token.type === TokenType.Id) {
             this.parseId();
         }
         else {
@@ -212,7 +209,7 @@ class Parser {
         this.cst.addBranchNode("<IntExpr>");
         this.parseDigit();
         const token = this.currentToken();
-        if (token && token.type === TokenType_js_1.TokenType.IntOp) {
+        if (token && token.type === TokenType.IntOp) {
             this.parseIntOp();
             this.parseExpr();
         }
@@ -225,7 +222,7 @@ class Parser {
     parseStringExpr() {
         this.logProduction("StringExpr");
         this.cst.addBranchNode("<StringExpr>");
-        this.match(TokenType_js_1.TokenType.StringLiteral);
+        this.match(TokenType.StringLiteral);
         this.cst.moveUp();
     }
     /**
@@ -240,15 +237,15 @@ class Parser {
             this.cst.moveUp();
             return;
         }
-        if (token.type === TokenType_js_1.TokenType.BoolVal) {
+        if (token.type === TokenType.BoolVal) {
             this.parseBoolVal();
         }
-        else if (token.type === TokenType_js_1.TokenType.LParen) {
-            this.match(TokenType_js_1.TokenType.LParen, "(");
+        else if (token.type === TokenType.LParen) {
+            this.match(TokenType.LParen, "(");
             this.parseExpr();
             this.parseBoolOp();
             this.parseExpr();
-            this.match(TokenType_js_1.TokenType.RParen, ")");
+            this.match(TokenType.RParen, ")");
         }
         else {
             this.parseError(`Expected BooleanExpr but found ${this.tokenDescription(token)}.`, token);
@@ -262,7 +259,7 @@ class Parser {
     parseId() {
         this.logProduction("Id");
         this.cst.addBranchNode("<Id>");
-        this.match(TokenType_js_1.TokenType.Id);
+        this.match(TokenType.Id);
         this.cst.moveUp();
     }
     /**
@@ -271,7 +268,7 @@ class Parser {
     parseType() {
         this.logProduction("Type");
         this.cst.addBranchNode("<Type>");
-        this.match(TokenType_js_1.TokenType.Type);
+        this.match(TokenType.Type);
         this.cst.moveUp();
     }
     /**
@@ -280,7 +277,7 @@ class Parser {
     parseDigit() {
         this.logProduction("Digit");
         this.cst.addBranchNode("<Digit>");
-        this.match(TokenType_js_1.TokenType.Digit);
+        this.match(TokenType.Digit);
         this.cst.moveUp();
     }
     /**
@@ -289,7 +286,7 @@ class Parser {
     parseBoolOp() {
         this.logProduction("BoolOp");
         this.cst.addBranchNode("<BoolOp>");
-        this.match(TokenType_js_1.TokenType.BoolOp);
+        this.match(TokenType.BoolOp);
         this.cst.moveUp();
     }
     /**
@@ -298,7 +295,7 @@ class Parser {
     parseBoolVal() {
         this.logProduction("BoolVal");
         this.cst.addBranchNode("<BoolVal>");
-        this.match(TokenType_js_1.TokenType.BoolVal);
+        this.match(TokenType.BoolVal);
         this.cst.moveUp();
     }
     /**
@@ -307,7 +304,7 @@ class Parser {
     parseIntOp() {
         this.logProduction("IntOp");
         this.cst.addBranchNode("<IntOp>");
-        this.match(TokenType_js_1.TokenType.IntOp, "+");
+        this.match(TokenType.IntOp, "+");
         this.cst.moveUp();
     }
     /**
@@ -324,7 +321,7 @@ class Parser {
         const valueMatches = expectedValue === undefined || token.value === expectedValue;
         if (typeMatches && valueMatches) {
             this.cst.addLeafNode(`[${token.type}: ${token.value}]`);
-            Logger_js_1.Logger.log(`PARSER → Matched ${this.tokenDescription(token)}`);
+            Logger.log(`PARSER → Matched ${this.tokenDescription(token)}`);
             this.currentIndex++;
             return;
         }
@@ -343,12 +340,12 @@ class Parser {
         if (!token) {
             return false;
         }
-        return (token.type === TokenType_js_1.TokenType.Print ||
-            token.type === TokenType_js_1.TokenType.Id ||
-            token.type === TokenType_js_1.TokenType.Type ||
-            token.type === TokenType_js_1.TokenType.While ||
-            token.type === TokenType_js_1.TokenType.If ||
-            token.type === TokenType_js_1.TokenType.LBrace);
+        return (token.type === TokenType.Print ||
+            token.type === TokenType.Id ||
+            token.type === TokenType.Type ||
+            token.type === TokenType.While ||
+            token.type === TokenType.If ||
+            token.type === TokenType.LBrace);
     }
     /**
      * Creates and records a parse error with detailed position data.
@@ -366,7 +363,7 @@ class Parser {
             programColumn: column
         };
         this.errors.push(diagnostic);
-        Logger_js_1.Logger.error(ErrorReporter_js_1.ErrorReporter.format(diagnostic));
+        Logger.error(ErrorReporter.format(diagnostic));
     }
     /**
      * Used when the parser needs a fallback location for unexpected EOF situations.
@@ -390,7 +387,6 @@ class Parser {
      * Verbose trace showing which grammar production is being entered.
      */
     logProduction(name) {
-        Logger_js_1.Logger.log(`PARSER → Parsing ${name}...`);
+        Logger.log(`PARSER → Parsing ${name}...`);
     }
 }
-exports.Parser = Parser;
