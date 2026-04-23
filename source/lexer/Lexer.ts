@@ -4,7 +4,9 @@ import { Logger } from "../util/Logger";
 import { Diagnostic, ErrorReporter } from "../util/ErrorReporter";
 
 /**
- * LexResult stores the full result of lexing one program.
+ * Encapsulates the result of lexical analysis for a single program.
+ * This structure allows the compiler pipeline to cleanly decide whether
+ * to proceed to parsing or halt due to errors.
  */
 export interface LexResult {
     tokens: Token[];
@@ -14,8 +16,19 @@ export interface LexResult {
 }
 
 /**
- * Lexer converts source code into tokens while tracking both file-relative
- * and program-relative positions for all diagnostics.
+ * The Lexer is responsible for transforming raw source code into a sequence
+ * of tokens based on the language grammar.
+ *
+ * Key responsibilities:
+ * - Recognize all valid tokens (keywords, identifiers, literals, symbols)
+ * - Ignore whitespace and comments
+ * - Track both file-level and program-level positions
+ * - Detect and report lexical errors and warnings
+ * - Support multiple programs separated by '$'
+ *
+ * Important design choice:
+ * This lexer supports "compact code" (no spaces) by greedily matching keywords
+ * before falling back to single-character identifiers.
  */
 export class Lexer {
     private tokens: Token[] = [];
@@ -23,10 +36,11 @@ export class Lexer {
     private warnings: Diagnostic[] = [];
 
     /**
-     * Lex one program.
+     * Main entry point for lexical analysis.
      *
-     * @param source The source code for this program.
-     * @param startingFileLine The line number in the original file where this program begins.
+     * @param source The raw source code of a single program
+     * @param startingFileLine The starting line number in the original file
+     * @returns LexResult containing tokens and diagnostics
      */
     public lex(source: string, startingFileLine: number = 1): LexResult {
         this.tokens = [];
@@ -37,7 +51,7 @@ export class Lexer {
 
         let i = 0;
 
-        // Absolute position in the file
+        // Absolute file position (used for final reporting)
         let fileLine = startingFileLine;
         let fileColumn = 1;
 
@@ -45,10 +59,16 @@ export class Lexer {
         let programLine = 1;
         let programColumn = 1;
 
+        /**
+         * Main scanning loop.
+         * Iterates through each character and determines how to classify it.
+         */
         while (i < source.length) {
             const char = source[i];
 
-            // Handle newlines
+            /**
+             * Handle newline explicitly because it affects both file and program tracking.
+             */
             if (char === "\n") {
                 fileLine++;
                 fileColumn = 1;
@@ -58,7 +78,10 @@ export class Lexer {
                 continue;
             }
 
-            // Ignore whitespace outside strings/comments
+            /**
+             * Skip whitespace (spaces, tabs, etc.).
+             * Newlines are handled separately above.
+             */
             if (/\s/.test(char)) {
                 fileColumn++;
                 programColumn++;
@@ -66,12 +89,16 @@ export class Lexer {
                 continue;
             }
 
-            // Handle comment blocks
+            /**
+             * Comment handling.
+             * Comments are ignored completely by the lexer.
+             * If the closing delimiter is missing, we issue a warning.
+             */
             if (char === "/" && source[i + 1] === "*") {
-                const commentFileLine = fileLine;
-                const commentFileColumn = fileColumn;
-                const commentProgramLine = programLine;
-                const commentProgramColumn = programColumn;
+                const startFL = fileLine;
+                const startFC = fileColumn;
+                const startPL = programLine;
+                const startPC = programColumn;
 
                 i += 2;
                 fileColumn += 2;
@@ -92,85 +119,72 @@ export class Lexer {
 
                 if (i >= source.length) {
                     this.warning(
-                        "Unterminated comment block. Reached end of input before finding '*/'.",
-                        commentFileLine,
-                        commentFileColumn,
-                        commentProgramLine,
-                        commentProgramColumn
+                        "Unterminated comment block.",
+                        startFL, startFC, startPL, startPC
                     );
                     break;
                 }
 
+                // Skip closing */
                 i += 2;
                 fileColumn += 2;
                 programColumn += 2;
                 continue;
             }
 
+            /**
+             * Single-character tokens and simple operators.
+             */
             switch (char) {
-                case "{":
-                    this.add(TokenType.LBrace, char, fileLine, fileColumn);
-                    break;
+                case "{": this.add(TokenType.LBrace, "{", fileLine, fileColumn); break;
+                case "}": this.add(TokenType.RBrace, "}", fileLine, fileColumn); break;
+                case "(": this.add(TokenType.LParen, "(", fileLine, fileColumn); break;
+                case ")": this.add(TokenType.RParen, ")", fileLine, fileColumn); break;
+                case "+": this.add(TokenType.IntOp, "+", fileLine, fileColumn); break;
+                case "$": this.add(TokenType.EOP, "$", fileLine, fileColumn); break;
 
-                case "}":
-                    this.add(TokenType.RBrace, char, fileLine, fileColumn);
-                    break;
-
-                case "(":
-                    this.add(TokenType.LParen, char, fileLine, fileColumn);
-                    break;
-
-                case ")":
-                    this.add(TokenType.RParen, char, fileLine, fileColumn);
-                    break;
-
-                case "+":
-                    this.add(TokenType.IntOp, char, fileLine, fileColumn);
-                    break;
-
-                case "$":
-                    this.add(TokenType.EOP, char, fileLine, fileColumn);
-                    break;
-
+                /**
+                 * '=' may represent assignment or equality.
+                 */
                 case "=":
                     if (source[i + 1] === "=") {
                         this.add(TokenType.BoolOp, "==", fileLine, fileColumn);
-                        i++;
-                        fileColumn++;
-                        programColumn++;
+                        i++; fileColumn++; programColumn++;
                     } else {
                         this.add(TokenType.Assign, "=", fileLine, fileColumn);
                     }
                     break;
 
+                /**
+                 * '!' is only valid when forming '!='.
+                 */
                 case "!":
                     if (source[i + 1] === "=") {
                         this.add(TokenType.BoolOp, "!=", fileLine, fileColumn);
-                        i++;
-                        fileColumn++;
-                        programColumn++;
+                        i++; fileColumn++; programColumn++;
                     } else {
                         this.error(
-                            "Unexpected '!'. Only '!=' is valid in this language.",
-                            fileLine,
-                            fileColumn,
-                            programLine,
-                            programColumn
+                            "Unexpected '!'. Only '!=' is valid.",
+                            fileLine, fileColumn, programLine, programColumn
                         );
                     }
                     break;
 
+                /**
+                 * String literal handling.
+                 * Strings must:
+                 * - be enclosed in quotes
+                 * - contain only lowercase letters and spaces
+                 * - not span multiple lines
+                 */
                 case "\"": {
-                    const startFileLine = fileLine;
-                    const startFileColumn = fileColumn;
-                    const startProgramLine = programLine;
-                    const startProgramColumn = programColumn;
+                    const startFL = fileLine;
+                    const startFC = fileColumn;
+                    const startPL = programLine;
+                    const startPC = programColumn;
 
                     let str = "";
-
-                    i++;
-                    fileColumn++;
-                    programColumn++;
+                    i++; fileColumn++; programColumn++;
 
                     let terminated = false;
 
@@ -182,99 +196,74 @@ export class Lexer {
 
                         if (source[i] === "\n") {
                             this.error(
-                                "Unterminated string literal. Strings cannot span multiple lines.",
-                                startFileLine,
-                                startFileColumn,
-                                startProgramLine,
-                                startProgramColumn
+                                "Unterminated string literal.",
+                                startFL, startFC, startPL, startPC
                             );
                             break;
                         }
 
                         if (!/[a-z ]/.test(source[i])) {
                             this.error(
-                                `Invalid character '${source[i]}' inside string literal. Only lowercase letters and spaces are allowed.`,
-                                fileLine,
-                                fileColumn,
-                                programLine,
-                                programColumn
+                                `Invalid character '${source[i]}' in string.`,
+                                fileLine, fileColumn, programLine, programColumn
                             );
                         }
 
                         str += source[i];
-                        i++;
-                        fileColumn++;
-                        programColumn++;
-                    }
-
-                    if (i >= source.length) {
-                        this.error(
-                            "Unterminated string literal. Reached end of input before finding closing quote.",
-                            startFileLine,
-                            startFileColumn,
-                            startProgramLine,
-                            startProgramColumn
-                        );
-                        break;
+                        i++; fileColumn++; programColumn++;
                     }
 
                     if (terminated) {
-                        this.add(TokenType.StringLiteral, str, startFileLine, startFileColumn);
+                        this.add(TokenType.StringLiteral, str, startFL, startFC);
                     }
 
                     break;
                 }
 
+                /**
+                 * Default case handles:
+                 * - digits
+                 * - keywords
+                 * - identifiers
+                 * - illegal characters
+                 */
                 default:
                     if (/[0-9]/.test(char)) {
                         this.add(TokenType.Digit, char, fileLine, fileColumn);
-                    } else if (/[a-z]/.test(char)) {
-                        let word = "";
-                        const startFileColumn = fileColumn;
-                        const startProgramColumn = programColumn;
+                    }
 
-                        while (i < source.length && /[a-z]/.test(source[i])) {
-                            word += source[i];
-                            i++;
-                            fileColumn++;
-                            programColumn++;
-                        }
+                    /**
+                     * Keyword vs Identifier logic:
+                     * Try to match full keyword first, otherwise fallback to single-char ID.
+                     */
+                    else if (/[a-z]/.test(char)) {
+                    const prev = this.previousToken();
 
-                        i--;
-                        fileColumn--;
-                        programColumn--;
-
-                        const keywords: Record<string, TokenType> = {
-                            print: TokenType.Print,
-                            while: TokenType.While,
-                            if: TokenType.If,
-                            int: TokenType.Type,
-                            string: TokenType.Type,
-                            boolean: TokenType.Type,
-                            true: TokenType.BoolVal,
-                            false: TokenType.BoolVal
-                        };
-
-                        if (keywords[word]) {
-                            this.add(keywords[word], word, fileLine, startFileColumn);
-                        } else if (word.length === 1) {
-                            this.add(TokenType.Id, word, fileLine, startFileColumn);
-                        } else {
-                            this.error(
-                                `Invalid identifier '${word}'. Identifiers must be exactly one lowercase letter.`,
-                                fileLine,
-                                startFileColumn,
-                                programLine,
-                                startProgramColumn
-                            );
-                        }
+                    // After a TYPE, force single-character ID
+                    if (prev !== null && prev.type === TokenType.Type) {
+                        this.add(TokenType.Id, char, fileLine, fileColumn);
                     } else {
+                        const match = this.tryConsumeKeyword(source, i);
+
+                        if (match !== null) {
+                            this.add(match.type, match.value, fileLine, fileColumn);
+
+                            i += match.value.length - 1;
+                            fileColumn += match.value.length - 1;
+                            programColumn += match.value.length - 1;
+                        } else {
+                            this.add(TokenType.Id, char, fileLine, fileColumn);
+                        }
+                    }
+                }
+
+                    /**
+                     * Any other character is invalid.
+                     */
+                    else {
                         this.error(
-                            `Illegal character '${char}'. This character is not part of the language grammar.`,
-                            fileLine,
-                            fileColumn,
-                            programLine,
-                            programColumn
+                            `Illegal character '${char}'.`,
+                            fileLine, fileColumn, programLine, programColumn
                         );
                     }
             }
@@ -284,13 +273,14 @@ export class Lexer {
             programColumn++;
         }
 
-        if (!this.tokens.some((t) => t.type === TokenType.EOP)) {
+        /**
+         * Ensure every program ends with '$'.
+         * If missing, insert automatically and warn.
+         */
+        if (!this.tokens.some(t => t.type === TokenType.EOP)) {
             this.warning(
-                "Missing end-of-program marker '$'. The lexer inserted one automatically.",
-                fileLine,
-                fileColumn,
-                programLine,
-                programColumn
+                "Missing '$'. Auto-inserted.",
+                fileLine, fileColumn, programLine, programColumn
             );
             this.add(TokenType.EOP, "$", fileLine, fileColumn);
         }
@@ -308,17 +298,45 @@ export class Lexer {
     }
 
     /**
-     * Create and store a token, then print it in verbose mode.
-     * Tokens keep file-based positions, since those are the most useful later.
+     * Attempts to match a keyword starting at the given index.
+     * This enables correct lexing of compact code without whitespace.
+     */
+    private tryConsumeKeyword(source: string, index: number): { type: TokenType; value: string } | null {
+        const keywords = [
+            { value: "boolean", type: TokenType.Type },
+            { value: "string", type: TokenType.Type },
+            { value: "while", type: TokenType.While },
+            { value: "print", type: TokenType.Print },
+            { value: "false", type: TokenType.BoolVal },
+            { value: "true", type: TokenType.BoolVal },
+            { value: "int", type: TokenType.Type },
+            { value: "if", type: TokenType.If }
+        ];
+
+        for (const k of keywords) {
+            if (source.startsWith(k.value, index)) {
+                return k;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Adds a token to the stream and logs it in verbose mode.
      */
     private add(type: TokenType, value: string, line: number, column: number): void {
         const token = new Token(type, value, line, column);
         this.tokens.push(token);
         Logger.log("LEXER → " + token.toString());
     }
-
+    private previousToken(): Token | null {
+        return this.tokens.length > 0
+            ? this.tokens[this.tokens.length - 1]
+            : null;
+    }
     /**
-     * Record a lexer error.
+     * Records an error.
      */
     private error(
         message: string,
@@ -327,7 +345,7 @@ export class Lexer {
         programLine: number,
         programColumn: number
     ): void {
-        const diagnostic: Diagnostic = {
+        const d: Diagnostic = {
             kind: "ERROR",
             phase: "LEXER",
             message,
@@ -337,12 +355,12 @@ export class Lexer {
             programColumn
         };
 
-        this.errors.push(diagnostic);
-        Logger.error(ErrorReporter.format(diagnostic));
+        this.errors.push(d);
+        Logger.error(ErrorReporter.format(d));
     }
 
     /**
-     * Record a lexer warning.
+     * Records a warning.
      */
     private warning(
         message: string,
@@ -351,7 +369,7 @@ export class Lexer {
         programLine: number,
         programColumn: number
     ): void {
-        const diagnostic: Diagnostic = {
+        const d: Diagnostic = {
             kind: "WARNING",
             phase: "LEXER",
             message,
@@ -361,7 +379,7 @@ export class Lexer {
             programColumn
         };
 
-        this.warnings.push(diagnostic);
-        Logger.warning(ErrorReporter.format(diagnostic));
+        this.warnings.push(d);
+        Logger.warning(ErrorReporter.format(d));
     }
 }

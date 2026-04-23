@@ -6,7 +6,7 @@ exports.ErrorReporter = void 0;
  */
 class ErrorReporter {
     static format(d) {
-        return `${d.phase} ${d.kind} at file (${d.fileLine}:${d.fileColumn}), program (${d.programLine - 1}:${d.programColumn}) → ${d.message}`;
+        return `${d.phase} ${d.kind} at file (${d.fileLine}:${d.fileColumn}), program (${d.programLine}:${d.programColumn}) → ${d.message}`;
     }
 }
 exports.ErrorReporter = ErrorReporter;

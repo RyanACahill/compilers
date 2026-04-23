@@ -17,6 +17,6 @@ export interface Diagnostic {
  */
 export class ErrorReporter {
     public static format(d: Diagnostic): string {
-        return `${d.phase} ${d.kind} at file (${d.fileLine}:${d.fileColumn}), program (${d.programLine -1}:${d.programColumn}) → ${d.message}`;
+        return `${d.phase} ${d.kind} at file (${d.fileLine}:${d.fileColumn}), program (${d.programLine}:${d.programColumn}) → ${d.message}`;
     }
 }
