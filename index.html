@@ -11,24 +11,25 @@
 
 <label for="input">Source Code:</label><br>
 
-<textarea id="input" rows="15" cols="80" placeholder="Enter your program here...">
-{intfintif=2}$
-</textarea>
+<textarea id="input" rows="15" cols="80" placeholder="Enter your program here...">{intfintif=3}$</textarea>
 
 <br><br>
 
-<button onclick="runCompiler()">Compile</button>
+<button id="compileBtn">Compile</button>
 
 <pre id="output"></pre>
 
 <script type="module">
 import { BrowserRunner } from "./distrib/compiler/BrowserRunner.js";
 
-window.runCompiler = function () {
-    const input = document.getElementById("input").value;
-    const result = BrowserRunner.run(input);
-    document.getElementById("output").textContent = result;
-};
+const button = document.getElementById("compileBtn");
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+
+button.addEventListener("click", () => {
+    const result = BrowserRunner.run(input.value);
+    output.textContent = result;
+});
 </script>
 
 </body>
