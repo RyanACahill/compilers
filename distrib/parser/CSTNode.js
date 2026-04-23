@@ -1,9 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CSTNode = void 0;
 /**
  * CSTNode represents one node in the Concrete Syntax Tree.
  * Branch nodes are grammar constructs like <Block> or <Expr>.
  * Leaf nodes are concrete tokens like [ID: a] or [DIGIT: 5].
  */
-export class CSTNode {
+class CSTNode {
     constructor(name, parent = null) {
         this.name = name;
         this.children = [];
@@ -17,4 +20,4 @@ export class CSTNode {
         this.children.push(child);
     }
 }
-//# sourceMappingURL=CSTNode.js.map
+exports.CSTNode = CSTNode;

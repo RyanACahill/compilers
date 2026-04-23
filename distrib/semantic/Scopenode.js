@@ -1,2 +1,2 @@
 "use strict";
-//# sourceMappingURL=Scopenode.js.map
+Object.defineProperty(exports, "__esModule", { value: true });

@@ -1,7 +1,10 @@
-import { Lexer } from "../lexer/Lexer";
-import { Parser } from "../parser/Parser";
-import { ErrorReporter } from "../util/ErrorReporter";
-export class ProgramRunner {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProgramRunner = void 0;
+const Lexer_js_1 = require("../lexer/Lexer.js");
+const Parser_js_1 = require("../parser/Parser.js");
+const ErrorReporter_js_1 = require("../util/ErrorReporter.js");
+class ProgramRunner {
     static run(source) {
         var _a;
         const programs = [];
@@ -38,7 +41,7 @@ export class ProgramRunner {
                 continue;
             }
             console.log(`\n================ PROGRAM ${program.number} ================`);
-            const lexer = new Lexer();
+            const lexer = new Lexer_js_1.Lexer();
             const lexResult = lexer.lex(program.source, program.startLine);
             if (lexResult.success) {
                 console.log("Lex successful.");
@@ -51,13 +54,13 @@ export class ProgramRunner {
                 if (lexResult.errors.length > 0) {
                     console.log("Errors:");
                     for (const error of lexResult.errors) {
-                        console.log(`- ${ErrorReporter.format(error)}`);
+                        console.log(`- ${ErrorReporter_js_1.ErrorReporter.format(error)}`);
                     }
                 }
                 if (lexResult.warnings.length > 0) {
                     console.log("Warnings:");
                     for (const warning of lexResult.warnings) {
-                        console.log(`- ${ErrorReporter.format(warning)}`);
+                        console.log(`- ${ErrorReporter_js_1.ErrorReporter.format(warning)}`);
                     }
                 }
             }
@@ -65,7 +68,7 @@ export class ProgramRunner {
                 console.log("Parse skipped due to lex errors.\n");
                 continue;
             }
-            const parser = new Parser();
+            const parser = new Parser_js_1.Parser();
             const parseResult = parser.parse(lexResult.tokens);
             if (parseResult.success) {
                 console.log("Parse successful.");
@@ -82,19 +85,19 @@ export class ProgramRunner {
                 if (parseResult.errors.length > 0) {
                     console.log("Errors:");
                     for (const error of parseResult.errors) {
-                        console.log(`- ${ErrorReporter.format(error)}`);
+                        console.log(`- ${ErrorReporter_js_1.ErrorReporter.format(error)}`);
                     }
                 }
                 if (parseResult.warnings.length > 0) {
                     console.log("Warnings:");
                     for (const warning of parseResult.warnings) {
-                        console.log(`- ${ErrorReporter.format(warning)}`);
+                        console.log(`- ${ErrorReporter_js_1.ErrorReporter.format(warning)}`);
                     }
                 }
                 if (parseResult.hints.length > 0) {
                     console.log("Hints:");
                     for (const hint of parseResult.hints) {
-                        console.log(`- ${ErrorReporter.format(hint)}`);
+                        console.log(`- ${ErrorReporter_js_1.ErrorReporter.format(hint)}`);
                     }
                 }
             }
@@ -102,4 +105,4 @@ export class ProgramRunner {
         }
     }
 }
-//# sourceMappingURL=ProgramRunner.js.map
+exports.ProgramRunner = ProgramRunner;

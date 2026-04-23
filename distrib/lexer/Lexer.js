@@ -1,7 +1,10 @@
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
-import { Logger } from "../util/Logger";
-import { ErrorReporter } from "../util/ErrorReporter";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Lexer = void 0;
+const Token_js_1 = require("./Token.js");
+const TokenType_js_1 = require("./TokenType.js");
+const Logger_js_1 = require("../util/Logger.js");
+const ErrorReporter_js_1 = require("../util/ErrorReporter.js");
 /**
  * The Lexer is responsible for transforming raw source code into a sequence
  * of tokens based on the language grammar.
@@ -17,7 +20,7 @@ import { ErrorReporter } from "../util/ErrorReporter";
  * This lexer supports "compact code" (no spaces) by greedily matching keywords
  * before falling back to single-character identifiers.
  */
-export class Lexer {
+class Lexer {
     constructor() {
         this.tokens = [];
         this.errors = [];
@@ -34,7 +37,7 @@ export class Lexer {
         this.tokens = [];
         this.errors = [];
         this.warnings = [];
-        Logger.log("\nLEXER → Starting lexical analysis...\n");
+        Logger_js_1.Logger.log("\nLEXER → Starting lexical analysis...\n");
         let i = 0;
         // Absolute file position (used for final reporting)
         let fileLine = startingFileLine;
@@ -110,35 +113,35 @@ export class Lexer {
              */
             switch (char) {
                 case "{":
-                    this.add(TokenType.LBrace, "{", fileLine, fileColumn);
+                    this.add(TokenType_js_1.TokenType.LBrace, "{", fileLine, fileColumn);
                     break;
                 case "}":
-                    this.add(TokenType.RBrace, "}", fileLine, fileColumn);
+                    this.add(TokenType_js_1.TokenType.RBrace, "}", fileLine, fileColumn);
                     break;
                 case "(":
-                    this.add(TokenType.LParen, "(", fileLine, fileColumn);
+                    this.add(TokenType_js_1.TokenType.LParen, "(", fileLine, fileColumn);
                     break;
                 case ")":
-                    this.add(TokenType.RParen, ")", fileLine, fileColumn);
+                    this.add(TokenType_js_1.TokenType.RParen, ")", fileLine, fileColumn);
                     break;
                 case "+":
-                    this.add(TokenType.IntOp, "+", fileLine, fileColumn);
+                    this.add(TokenType_js_1.TokenType.IntOp, "+", fileLine, fileColumn);
                     break;
                 case "$":
-                    this.add(TokenType.EOP, "$", fileLine, fileColumn);
+                    this.add(TokenType_js_1.TokenType.EOP, "$", fileLine, fileColumn);
                     break;
                 /**
                  * '=' may represent assignment or equality.
                  */
                 case "=":
                     if (source[i + 1] === "=") {
-                        this.add(TokenType.BoolOp, "==", fileLine, fileColumn);
+                        this.add(TokenType_js_1.TokenType.BoolOp, "==", fileLine, fileColumn);
                         i++;
                         fileColumn++;
                         programColumn++;
                     }
                     else {
-                        this.add(TokenType.Assign, "=", fileLine, fileColumn);
+                        this.add(TokenType_js_1.TokenType.Assign, "=", fileLine, fileColumn);
                     }
                     break;
                 /**
@@ -146,7 +149,7 @@ export class Lexer {
                  */
                 case "!":
                     if (source[i + 1] === "=") {
-                        this.add(TokenType.BoolOp, "!=", fileLine, fileColumn);
+                        this.add(TokenType_js_1.TokenType.BoolOp, "!=", fileLine, fileColumn);
                         i++;
                         fileColumn++;
                         programColumn++;
@@ -190,7 +193,7 @@ export class Lexer {
                         programColumn++;
                     }
                     if (terminated) {
-                        this.add(TokenType.StringLiteral, str, startFL, startFC);
+                        this.add(TokenType_js_1.TokenType.StringLiteral, str, startFL, startFC);
                     }
                     break;
                 }
@@ -203,7 +206,7 @@ export class Lexer {
                  */
                 default:
                     if (/[0-9]/.test(char)) {
-                        this.add(TokenType.Digit, char, fileLine, fileColumn);
+                        this.add(TokenType_js_1.TokenType.Digit, char, fileLine, fileColumn);
                     }
                     /**
                      * Keyword vs Identifier logic:
@@ -212,8 +215,8 @@ export class Lexer {
                     else if (/[a-z]/.test(char)) {
                         const prev = this.previousToken();
                         // After a TYPE, force single-character ID
-                        if (prev !== null && prev.type === TokenType.Type) {
-                            this.add(TokenType.Id, char, fileLine, fileColumn);
+                        if (prev !== null && prev.type === TokenType_js_1.TokenType.Type) {
+                            this.add(TokenType_js_1.TokenType.Id, char, fileLine, fileColumn);
                         }
                         else {
                             const match = this.tryConsumeKeyword(source, i);
@@ -224,7 +227,7 @@ export class Lexer {
                                 programColumn += match.value.length - 1;
                             }
                             else {
-                                this.add(TokenType.Id, char, fileLine, fileColumn);
+                                this.add(TokenType_js_1.TokenType.Id, char, fileLine, fileColumn);
                             }
                         }
                     }
@@ -243,11 +246,11 @@ export class Lexer {
          * Ensure every program ends with '$'.
          * If missing, insert automatically and warn.
          */
-        if (!this.tokens.some(t => t.type === TokenType.EOP)) {
+        if (!this.tokens.some(t => t.type === TokenType_js_1.TokenType.EOP)) {
             this.warning("Missing '$'. Auto-inserted.", fileLine, fileColumn, programLine, programColumn);
-            this.add(TokenType.EOP, "$", fileLine, fileColumn);
+            this.add(TokenType_js_1.TokenType.EOP, "$", fileLine, fileColumn);
         }
-        Logger.log(`\nLEXER → Completed with ${this.errors.length} error(s), ${this.warnings.length} warning(s).\n`);
+        Logger_js_1.Logger.log(`\nLEXER → Completed with ${this.errors.length} error(s), ${this.warnings.length} warning(s).\n`);
         return {
             tokens: this.tokens,
             errors: this.errors,
@@ -261,14 +264,14 @@ export class Lexer {
      */
     tryConsumeKeyword(source, index) {
         const keywords = [
-            { value: "boolean", type: TokenType.Type },
-            { value: "string", type: TokenType.Type },
-            { value: "while", type: TokenType.While },
-            { value: "print", type: TokenType.Print },
-            { value: "false", type: TokenType.BoolVal },
-            { value: "true", type: TokenType.BoolVal },
-            { value: "int", type: TokenType.Type },
-            { value: "if", type: TokenType.If }
+            { value: "boolean", type: TokenType_js_1.TokenType.Type },
+            { value: "string", type: TokenType_js_1.TokenType.Type },
+            { value: "while", type: TokenType_js_1.TokenType.While },
+            { value: "print", type: TokenType_js_1.TokenType.Print },
+            { value: "false", type: TokenType_js_1.TokenType.BoolVal },
+            { value: "true", type: TokenType_js_1.TokenType.BoolVal },
+            { value: "int", type: TokenType_js_1.TokenType.Type },
+            { value: "if", type: TokenType_js_1.TokenType.If }
         ];
         for (const k of keywords) {
             if (source.startsWith(k.value, index)) {
@@ -281,9 +284,9 @@ export class Lexer {
      * Adds a token to the stream and logs it in verbose mode.
      */
     add(type, value, line, column) {
-        const token = new Token(type, value, line, column);
+        const token = new Token_js_1.Token(type, value, line, column);
         this.tokens.push(token);
-        Logger.log("LEXER → " + token.toString());
+        Logger_js_1.Logger.log("LEXER → " + token.toString());
     }
     previousToken() {
         return this.tokens.length > 0
@@ -304,7 +307,7 @@ export class Lexer {
             programColumn
         };
         this.errors.push(d);
-        Logger.error(ErrorReporter.format(d));
+        Logger_js_1.Logger.error(ErrorReporter_js_1.ErrorReporter.format(d));
     }
     /**
      * Records a warning.
@@ -320,7 +323,7 @@ export class Lexer {
             programColumn
         };
         this.warnings.push(d);
-        Logger.warning(ErrorReporter.format(d));
+        Logger_js_1.Logger.warning(ErrorReporter_js_1.ErrorReporter.format(d));
     }
 }
-//# sourceMappingURL=Lexer.js.map
+exports.Lexer = Lexer;

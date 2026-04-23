@@ -1,8 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Logger = void 0;
 /**
  * Logger provides centralized logging functionality.
  * It supports verbose tracing, which is required by the project spec.
  */
-export class Logger {
+class Logger {
     /**
      * Logs a message only if verbose mode is enabled.
      */
@@ -24,6 +27,6 @@ export class Logger {
         console.warn("WARNING → " + message);
     }
 }
+exports.Logger = Logger;
 // Controls whether detailed tracing is printed
 Logger.verbose = true;
-//# sourceMappingURL=Logger.js.map

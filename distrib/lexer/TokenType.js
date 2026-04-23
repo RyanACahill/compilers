@@ -1,8 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TokenType = void 0;
 /**
  * TokenType defines all possible token categories recognized by the lexer.
  * These correspond directly to the grammar terminals in the language.
  */
-export var TokenType;
+var TokenType;
 (function (TokenType) {
     // Structural symbols
     TokenType["LBrace"] = "L_BRACE";
@@ -25,5 +28,4 @@ export var TokenType;
     TokenType["Assign"] = "ASSIGN";
     TokenType["BoolOp"] = "BOOL_OP";
     TokenType["IntOp"] = "INT_OP"; // +
-})(TokenType || (TokenType = {}));
-//# sourceMappingURL=TokenType.js.map
+})(TokenType || (exports.TokenType = TokenType = {}));

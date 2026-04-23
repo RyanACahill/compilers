@@ -1,2 +1,2 @@
 "use strict";
-//# sourceMappingURL=SymbolTableEntry.js.map
+Object.defineProperty(exports, "__esModule", { value: true });
