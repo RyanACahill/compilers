@@ -210,22 +210,15 @@ export class Lexer {
                      * Try to match full keyword first, otherwise fallback to single-char ID.
                      */
                     else if (/[a-z]/.test(char)) {
-                        const prev = this.previousToken();
-                        // After a TYPE, force single-character ID
-                        if (prev !== null && prev.type === TokenType.Type) {
-                            this.add(TokenType.Id, char, fileLine, fileColumn);
+                        const match = this.tryConsumeKeyword(source, i);
+                        if (match !== null) {
+                            this.add(match.type, match.value, fileLine, fileColumn);
+                            i += match.value.length - 1;
+                            fileColumn += match.value.length - 1;
+                            programColumn += match.value.length - 1;
                         }
                         else {
-                            const match = this.tryConsumeKeyword(source, i);
-                            if (match !== null) {
-                                this.add(match.type, match.value, fileLine, fileColumn);
-                                i += match.value.length - 1;
-                                fileColumn += match.value.length - 1;
-                                programColumn += match.value.length - 1;
-                            }
-                            else {
-                                this.add(TokenType.Id, char, fileLine, fileColumn);
-                            }
+                            this.add(TokenType.Id, char, fileLine, fileColumn);
                         }
                     }
                     /**
@@ -284,11 +277,6 @@ export class Lexer {
         const token = new Token(type, value, line, column);
         this.tokens.push(token);
         Logger.log("LEXER → " + token.toString());
-    }
-    previousToken() {
-        return this.tokens.length > 0
-            ? this.tokens[this.tokens.length - 1]
-            : null;
     }
     /**
      * Records an error.
