@@ -2,9 +2,10 @@ import { Lexer } from "../lexer/Lexer.js";
 import { Parser } from "../parser/Parser.js";
 import { ErrorReporter } from "../util/ErrorReporter.js";
 import { Logger } from "../util/Logger.js";
+import { SemanticAnalyzer } from "../semantic/SemanticAnalyzer.js";
 export class ProgramRunner {
     static run(source) {
-        var _a, _b;
+        var _a, _b, _c, _d, _e, _f;
         const programs = [];
         let currentProgram = "";
         let currentLine = 1;
@@ -72,6 +73,22 @@ export class ProgramRunner {
                 Logger.log("Parse successful.");
                 Logger.log("\nCST:");
                 Logger.log((_b = (_a = parseResult.cst) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "");
+                // ========================
+                // SEMANTIC ANALYSIS PHASE
+                // ========================
+                const semanticAnalyzer = new SemanticAnalyzer();
+                const semanticResult = semanticAnalyzer.analyze(lexResult.tokens);
+                if (semanticResult.success) {
+                    Logger.log("\nSemantic Analysis successful.");
+                    Logger.log("\nAST:");
+                    Logger.log((_d = (_c = semanticResult.ast) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : "");
+                    Logger.log("\nSymbol Table:");
+                    Logger.log((_f = (_e = semanticResult.symbolTable) === null || _e === void 0 ? void 0 : _e.toString()) !== null && _f !== void 0 ? _f : "");
+                }
+                else {
+                    Logger.log("\nSemantic Analysis unsuccessful.");
+                    Logger.log("Code Generation skipped due to semantic errors.");
+                }
             }
             else {
                 Logger.log("Parse unsuccessful.");
