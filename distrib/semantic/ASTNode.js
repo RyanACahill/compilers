@@ -1,0 +1,11 @@
+export class ASTNode {
+    constructor(name, value = "", token = null) {
+        this.name = name;
+        this.value = value;
+        this.token = token;
+        this.children = [];
+    }
+    addChild(child) {
+        this.children.push(child);
+    }
+}
