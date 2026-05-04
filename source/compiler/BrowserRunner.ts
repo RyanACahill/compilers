@@ -1,6 +1,7 @@
 import { Lexer } from "../lexer/Lexer.js";
 import { Parser } from "../parser/Parser.js";
 import { Logger } from "../util/Logger.js";
+import { SemanticAnalyzer } from "../semantic/SemanticAnalyzer.js";
 
 export class BrowserRunner {
     public static run(source: string): string {
@@ -45,6 +46,26 @@ export class BrowserRunner {
             if (parseResult.cst) {
                 Logger.log("\nCST:\n");
                 Logger.log(parseResult.cst.toString());
+            }
+
+            // ========================
+            // SEMANTIC ANALYSIS PHASE
+            // ========================
+
+            const semanticAnalyzer = new SemanticAnalyzer();
+            const semanticResult = semanticAnalyzer.analyze(lexResult.tokens);
+
+            if (semanticResult.success) {
+                Logger.log("\nSemantic Analysis successful.");
+
+                Logger.log("\nAST:");
+                Logger.log(semanticResult.ast?.toString() ?? "");
+
+                Logger.log("\nSymbol Table:");
+                Logger.log(semanticResult.symbolTable?.toString() ?? "");
+            } else {
+                Logger.log("\nSemantic Analysis unsuccessful.");
+                Logger.log("Code Generation skipped due to semantic errors.");
             }
 
             programNumber++;
