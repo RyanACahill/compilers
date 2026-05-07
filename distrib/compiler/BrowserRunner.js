@@ -9,6 +9,7 @@ export class BrowserRunner {
         var _a, _b, _c, _d;
         Logger.clear();
         Logger.verbose = true;
+        let codeGenOutput = "";
         const programs = [];
         let currentProgram = "";
         let currentLine = 1;
@@ -51,6 +52,7 @@ export class BrowserRunner {
             }
             if (!lexResult.success) {
                 Logger.log("Parse skipped due to lex errors.\n");
+                codeGenOutput += `PROGRAM ${program.number}: Code Generation skipped due to lex errors.\n\n`;
                 continue;
             }
             const parser = new Parser();
@@ -63,6 +65,7 @@ export class BrowserRunner {
             }
             if (!parseResult.success) {
                 Logger.log("Semantic Analysis skipped due to parse errors.\n");
+                codeGenOutput += `PROGRAM ${program.number}: Code Generation skipped due to parse errors.\n\n`;
                 continue;
             }
             if (parseResult.cst) {
@@ -84,29 +87,44 @@ export class BrowserRunner {
                 Logger.log((_b = (_a = semanticResult.ast) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "");
                 Logger.log("\nSymbol Table:");
                 Logger.log((_d = (_c = semanticResult.symbolTable) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : "");
-                // ========================
-                // CODE GENERATION PHASE
-                // ========================
                 const codeGenerator = new CodeGenerator();
                 const codeGenResult = codeGenerator.generate(semanticResult.ast);
                 if (codeGenResult.success) {
                     Logger.log("\nCode Generation successful.");
+                    const formattedCode = this.formatMachineCode(codeGenResult.code);
                     Logger.log("\n6502a Machine Code:");
-                    Logger.log(codeGenResult.code.join(" "));
+                    Logger.log(formattedCode);
+                    codeGenOutput += `PROGRAM ${program.number}\n`;
+                    codeGenOutput += formattedCode + "\n\n";
                 }
                 else {
                     Logger.log("\nCode Generation unsuccessful.");
                     Logger.log("\nCode Generation Errors:");
+                    codeGenOutput += `PROGRAM ${program.number}: Code Generation unsuccessful.\n`;
                     for (const error of codeGenResult.errors) {
                         Logger.error(error);
+                        codeGenOutput += `- ${error}\n`;
                     }
+                    codeGenOutput += "\n";
                 }
             }
             else {
                 Logger.log("Code Generation skipped due to semantic errors.");
+                codeGenOutput += `PROGRAM ${program.number}: Code Generation skipped due to semantic errors.\n\n`;
             }
         }
-        return Logger.getOutput();
+        return {
+            fullOutput: Logger.getOutput(),
+            codeGenOutput: codeGenOutput.trim()
+        };
+    }
+    static formatMachineCode(code) {
+        let output = "";
+        for (let i = 0; i < code.length; i += 8) {
+            const row = code.slice(i, i + 8).join(" ");
+            output += row + "\n";
+        }
+        return output.trim();
     }
     static printSummary(phase, errors, warnings, hints) {
         Logger.log(`\n${phase} Summary: ${errors.length} error(s), ${warnings.length} warning(s), ${hints.length} hint(s).`);
