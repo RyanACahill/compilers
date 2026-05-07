@@ -4,6 +4,8 @@ import { Logger } from "../util/Logger.js";
 import { ErrorReporter } from "../util/ErrorReporter.js";
 import { SemanticAnalyzer } from "../semantic/SemanticAnalyzer.js";
 import type { Diagnostic } from "../util/ErrorReporter.js";
+import { CodeGenerator } from "../codegen/CodeGenerator.js";
+
 
 interface ProgramInfo {
     source: string;
@@ -124,9 +126,34 @@ export class BrowserRunner {
 
                 Logger.log("\nSymbol Table:");
                 Logger.log(semanticResult.symbolTable?.toString() ?? "");
+
+                // ========================
+                // CODE GENERATION PHASE
+                // ========================
+
+                const codeGenerator = new CodeGenerator();
+                const codeGenResult = codeGenerator.generate(semanticResult.ast!);
+
+                if (codeGenResult.success) {
+                    Logger.log("\nCode Generation successful.");
+
+                    Logger.log("\n6502a Machine Code:");
+                    Logger.log(codeGenResult.code.join(" "));
+                } else {
+                    Logger.log("\nCode Generation unsuccessful.");
+
+                    Logger.log("\nCode Generation Errors:");
+
+                    for (const error of codeGenResult.errors) {
+                        Logger.error(error);
+                    }
+                }
+
             } else {
                 Logger.log("Code Generation skipped due to semantic errors.");
             }
+
+
         }
 
         return Logger.getOutput();
