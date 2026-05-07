@@ -251,3 +251,51 @@ Test 25: Long semantic failure example
 
 Expected Result: Fail
 Why: Invalid comparison between int and boolean, variable x used out of scope, and string assigned to int variable a.
+
+Test 25: exceed 256 bytes
+
+{
+ int a
+ int b
+ int c
+ boolean d
+ string e
+
+ a = 1
+ b = 2
+ c = 1 + b
+ d = (c != a)
+ e = "finished"
+
+ print(a)
+ print(b)
+ print(c)
+
+ if (d == true) {
+  print(e)
+
+  {
+   int f
+   boolean g
+
+   f = 1 + c
+   g = (f != a)
+
+   print(f)
+
+   if (g == true) {
+    print("deep")
+   }
+  }
+ }
+
+ while (a != 3) {
+  a = 1 + a
+  print(a)
+ }
+
+ print("end")
+}$
+
+Expected Result: Fail
+Why: Generated code exceeded 256 bytes.

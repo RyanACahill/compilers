@@ -1,0 +1,202 @@
+Test 1
+{
+ int a
+ int b
+ string c
+ boolean d
+
+ a = 1
+ b = 1 + 2
+ c = "hello world"
+ d = (a != b)
+
+ print(a)
+ print(b)
+ print(c)
+ print(d)
+}$
+
+Expected Result: Pass
+
+Test 2
+{
+ int a
+ a = 1
+
+ while (a != 5) {
+  print(a)
+  a = 1 + a
+ }
+
+ print(a)
+}$
+
+Expected Result: Pass
+
+Test 3
+{
+ string a
+ boolean b
+
+ a = "compiler"
+ b = true
+
+ if (b == true) {
+  print(a)
+ }
+
+ if (b != false) {
+  print("working")
+ }
+}$
+
+Expected Result: Pass
+
+Test 4
+{
+ int a
+ int b
+ int c
+
+ a = 1
+ b = 2
+ c = 1 + b
+
+ if (a != c) {
+  print("different")
+ }
+
+ while (a != 4) {
+  a = 1 + a
+  print(a)
+ }
+}$
+
+Expected Result: Pass
+
+Test 5
+{
+ boolean a
+ boolean b
+
+ a = true
+ b = false
+
+ if (a != b) {
+  print("good")
+ }
+
+ if (a == true) {
+  print("still good")
+ }
+}$
+
+Expected Result: Pass
+
+Test 6
+{
+ int a
+ string b
+
+ a = 1
+ b = "start"
+
+ {
+  int c
+  string d
+
+  c = 2
+  d = "inner"
+
+  print(c)
+  print(d)
+
+  {
+   boolean e
+   e = (c != a)
+
+   if (e == true) {
+    print("nested")
+   }
+  }
+
+  print(b)
+ }
+
+ print(a)
+}$
+
+Expected Result: Pass
+
+Test 7
+{
+ int a
+ int b
+ boolean c
+
+ a = 1
+ b = 5
+ c = false
+
+ while (a != b) {
+  print(a)
+
+  if (c == false) {
+   print("loop")
+  }
+
+  a = 1 + a
+ }
+
+ print(b)
+}$
+
+Expected Result: Pass
+
+Test 8
+{
+ string a
+ string b
+
+ a = "hello"
+ b = "world"
+
+ print(a)
+ print(b)
+
+ {
+  boolean c
+  c = (true != false)
+
+  if (c == true) {
+   print("inside")
+  }
+ }
+
+ print("done")
+}$
+
+Expected Result: Pass
+
+Test 9
+{
+ int a
+ boolean b
+ string c
+
+ a = 1
+ b = (1 != 2)
+ c = "test"
+
+ if (b == true) {
+  while (a != 4) {
+   print(c)
+   print(a)
+   a = 1 + a
+  }
+ }
+
+ print("complete")
+}$
+
+Expected Result: Pass
