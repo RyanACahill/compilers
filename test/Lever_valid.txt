@@ -1,0 +1,95 @@
+Test 1: Empty block
+{}$
+
+Expected Result: Pass
+
+Test 2: Variable declarations
+{
+ int a
+ string b
+ boolean c
+}$
+
+Expected Result: Pass
+
+Test 3: Assignment with digit
+{
+ int a
+ a = 5
+}$
+
+Expected Result: Pass
+
+Test 4: Print string
+{
+ print("hello world")
+}$
+
+Expected Result: Pass
+
+Test 5: Boolean assignment
+{
+ boolean b
+ b = true
+}$
+
+Expected Result: Pass
+
+Test 6: If statement
+{
+ if (true == false) {
+  print("no")
+ }
+}$
+
+Expected Result: Pass
+
+Test 7: While statement
+{
+ int a
+ a = 1
+ while (a != 9) {
+  a = 1 + a
+ }
+}$
+
+Expected Result: Pass
+
+Test 8: Nested blocks
+{
+ int a
+ {
+  string b
+  b = "hi"
+ }
+ a = 7
+}$
+
+Expected Result: Pass
+
+Test 9: Comment ignored
+{
+ int a
+ /* this is a comment */
+ a = 3
+}$
+
+Expected Result: Pass
+
+Test 10: Longer valid program
+{
+ int a
+ string b
+ boolean c
+ a = 1
+ b = "hello"
+ c = false
+ if (c != true) {
+  print(b)
+ }
+ while (a != 5) {
+  a = 1 + a
+ }
+}$
+
+Expected Result: Pass

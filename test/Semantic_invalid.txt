@@ -1,0 +1,253 @@
+Test 1: Undeclared variable
+{
+ a = 5
+}$
+
+Expected Result: Fail
+Why: Variable a was never declared before use.
+
+Test 2: Variable used before declaration
+{
+ a = 1
+ int a
+}$
+
+Expected Result: Fail
+Why: a is assigned before it is declared.
+
+Test 3: Type mismatch assigning string to int
+{
+ int a
+ a = "hello"
+}$
+
+Expected Result: Fail
+Why: Cannot assign a string value to an integer variable.
+
+Test 4: Type mismatch assigning int to string
+{
+ string a
+ a = 5
+}$
+
+Expected Result: Fail
+Why: Cannot assign an integer value to a string variable.
+
+Test 5: Type mismatch assigning boolean to int
+{
+ int a
+ a = true
+}$
+
+Expected Result: Fail
+Why: Cannot assign a boolean value to an integer variable.
+
+Test 6: Type mismatch in boolean comparison
+{
+ if ("hello" == 5) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: Cannot compare a string and an integer.
+
+Test 7: Redeclaration in same scope
+{
+ int a
+ string a
+}$
+
+Expected Result: Fail
+Why: Variable a is declared twice in the same scope.
+
+Test 8: Scope violation
+{
+ {
+  int a
+ }
+ a = 5
+}$
+
+Expected Result: Fail
+Why: a is out of scope outside the inner block.
+
+Test 9: Invalid addition with string
+{
+ int a
+ a = 1 + "hello"
+}$
+
+Expected Result: Fail
+Why: Integer addition cannot be performed with a string.
+
+Test 10: Invalid addition with boolean
+{
+ int a
+ a = 1 + true
+}$
+
+Expected Result: Fail
+Why: Integer addition cannot be performed with a boolean.
+
+Test 11: Assigning comparison result to int
+{
+ int a
+ a = (1 == 1)
+}$
+
+Expected Result: Fail
+Why: (1 == 1) produces a boolean, not an integer.
+
+Test 12: Assigning int to boolean
+{
+ boolean b
+ b = 1
+}$
+
+Expected Result: Fail
+Why: Integer values cannot be assigned to boolean variables.
+
+Test 13: Printing undeclared variable
+{
+ print(a)
+}$
+
+Expected Result: Fail
+Why: Variable a was never declared.
+
+Test 14: Comparing incompatible types
+{
+ boolean b
+ b = ("hi" != false)
+}$
+
+Expected Result: Fail
+Why: Cannot compare a string and a boolean.
+
+Test 15: Variable declared in sibling scope
+{
+ {
+  int a
+ }
+ {
+  a = 5
+ }
+}$
+
+Expected Result: Fail
+Why: a is not visible outside the block where it was declared.
+
+
+Test 17: Boolean used in arithmetic
+{
+ int a
+ boolean b
+ b = true
+ a = 1 + b
+}$
+
+Expected Result: Fail
+Why: Arithmetic operations require integer operands.
+
+Test 18: String used in arithmetic
+{
+ int a
+ string b
+ b = "hello"
+ a = 1 + b
+}$
+
+Expected Result: Fail
+Why: Arithmetic operations cannot use strings.
+
+Test 19: Comparing int and boolean
+{
+ if (1 == true) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: Integer and boolean types are incompatible.
+
+Test 20: Shadowing misuse
+{
+ int a
+ {
+  string a
+  a = 5
+ }
+}$
+
+Expected Result: Fail
+Why: Inner a is a string variable, but it is assigned an integer.
+
+Test 21: Using variable outside nested scope
+{
+ if (true == true) {
+  int x
+  x = 1
+ }
+ print(x)
+}$
+
+Expected Result: Fail
+Why: x only exists inside the if block.
+
+Test 22: Invalid boolean assignment
+{
+ boolean b
+ b = "hello"
+}$
+
+Expected Result: Fail
+Why: A string cannot be assigned to a boolean variable.
+
+Test 23: Multiple semantic errors
+{
+ int a
+ string b
+ a = "wrong"
+ b = 5
+ c = true
+}$
+
+Expected Result: Fail
+Why: Type mismatch assigning string to int, type mismatch assigning int to string, and undeclared variable c.
+
+Test 24: Invalid comparison inside while
+{
+ while ("hello" == false) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: Cannot compare a string with a boolean.
+
+Test 25: Long semantic failure example
+{
+ int a
+ boolean b
+ string c
+
+ a = 1
+ b = false
+ c = "hello"
+
+ if (a == b) {
+  print(c)
+ }
+
+ {
+  int x
+ }
+
+ x = 5
+
+ a = "bad"
+}$
+
+Expected Result: Fail
+Why: Invalid comparison between int and boolean, variable x used out of scope, and string assigned to int variable a.

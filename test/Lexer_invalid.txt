@@ -1,0 +1,187 @@
+Test 1: Invalid uppercase letter
+{
+ int A
+}$
+
+Expected Result: Fail
+Why: Identifiers can only be lowercase letters a-z. A is invalid because it is uppercase.
+
+Test 2: Invalid multi-character identifier
+{
+ int abc
+}$
+
+Expected Result: Fail
+Why: An Id must be exactly one lowercase character. abc should not be accepted as one identifier.
+
+Test 3: Invalid symbol
+{
+ int a
+ a @ 5
+}$
+
+Expected Result: Fail
+Why: @ is not part of the language grammar, so the lexer should reject it.
+
+Test 4: Invalid assignment operator
+{
+ int a
+ a := 5
+}$
+
+Expected Result: Fail
+Why: The language only supports = for assignment. : is not a valid token.
+
+Test 5: Missing end quote in string
+{
+ print("hello)
+}$
+
+Expected Result: Fail
+Why: The string starts with " but never closes.
+
+Test 6: Invalid character inside string
+{
+ print("hello!")
+}$
+
+Expected Result: Fail
+Why: Strings can only contain lowercase letters and spaces. ! is not allowed.
+
+Test 7: Uppercase letter inside string
+{
+ print("Hello")
+}$
+
+Expected Result: Fail
+Why: String characters must be lowercase letters or spaces only. H is uppercase.
+
+Test 8: Digit inside string
+{
+ print("abc123")
+}$
+
+Expected Result: Fail
+Why: Digits are not allowed inside strings according to CharList.
+
+Test 9: Unterminated comment
+{
+ int a
+ /* this comment never ends
+ a = 5
+}$
+
+Expected Result: Fail
+Why: Comments must begin with /* and end with */.
+
+Test 10: Invalid comment close without opening
+{
+ int a
+ */
+ a = 5
+}$
+
+Expected Result: Fail
+Why: The lexer found a closing comment token without an opening /*.
+
+Test 11: Single ! instead of !=
+{
+ boolean b
+ b = ! true
+}$
+
+Expected Result: Fail
+Why: ! is only valid as part of the != operator.
+
+
+Test 13: Invalid operator
+{
+ int a
+ a = 1 - 2
+}$
+
+Expected Result: Fail
+Why: The only valid integer operator is +. - is not part of the language.
+
+Test 14: Invalid comparison operator
+{
+ if (1 < 2) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: < is not a valid boolean operator. Only == and != are allowed.
+
+Test 15: Invalid comma
+{
+ print("hello", "world")
+}$
+
+Expected Result: Fail
+Why: , is not a valid token in the language.
+
+Test 16: Missing EOP symbol
+{
+ int a
+ a = 5
+}
+
+Expected Result:  Warning
+Why: A complete program must end with $. auto-inserted $.
+
+
+Test 18: Invalid keyword spelling
+{
+ integer a
+}$
+
+Expected Result: Fail or Parser Fail
+Why: integer is not a valid type. The valid types are only int, string, and boolean. If your lexer reads this as separate identifiers/characters, the parser should reject it.
+
+Test 19: Invalid quote type
+{
+ print('hello')
+}$
+
+Expected Result: Fail
+Why: Strings must use double quotes " ". Single quotes are not valid tokens.
+
+Test 20: Invalid decimal number
+{
+ int a
+ a = 1.5
+}$
+
+Expected Result: Fail
+Why: The language only allows single digits 0-9. The period . is invalid.
+
+
+Test 22: Invalid underscore in identifier
+{
+ int my_var
+}$
+
+Expected Result: Fail
+Why: _ is not valid, and identifiers must be one lowercase letter only.
+
+Test 23: Invalid tab inside string
+{
+ print("hello	world")
+}$
+
+Expected Result: Fail
+Why: The grammar only allows the actual space character inside strings, not tabs.
+
+Test 24: Long invalid program with multiple lexer errors
+{
+ Int a
+ a = 12
+ print("Hello!")
+ if (a >= 1) {
+  print('bad')
+ }
+}$
+
+Expected Result: Fail
+Why: This has multiple lexer issues: uppercase I, uppercase H, ! inside a string, > is invalid, and single quotes are invalid.

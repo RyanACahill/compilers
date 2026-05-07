@@ -1,0 +1,220 @@
+Test 1: Missing closing brace
+{
+ int a
+ a = 5
+$
+
+Expected Result: Fail
+Why: The block is never closed with }.
+
+Test 2: Missing opening brace
+int a
+a = 5
+}$
+
+Expected Result: Fail
+Why: Every program must begin with a Block, which starts with {.
+
+Test 3: Missing expression in assignment
+{
+ int a
+ a =
+}$
+
+Expected Result: Fail
+Why: Assignment statements require an expression after =.
+
+Test 4: Missing identifier in declaration
+{
+ int
+}$
+
+Expected Result: Fail
+Why: Variable declarations require a type followed by an identifier.
+
+Test 5: Invalid print statement
+{
+ print()
+}$
+
+Expected Result: Fail
+Why: print requires an expression inside the parentheses.
+
+Test 6: Missing closing parenthesis
+{
+ print("hello"
+}$
+
+Expected Result: Fail
+Why: The print statement is missing a closing ).
+
+Test 7: Missing opening parenthesis in print
+{
+ print "hello"
+}$
+
+Expected Result: Fail
+Why: Print statements must follow the form print ( Expr ).
+
+
+Test 9: Missing block after if
+{
+ if (true == true)
+}$
+
+Expected Result: Fail
+Why: An if statement must be followed by a block.
+
+Test 10: Missing block after while
+{
+ while (true != false)
+}$
+
+Expected Result: Fail
+Why: A while statement must be followed by a block.
+
+Test 11: Invalid boolean expression
+{
+ if (true) {
+  print("hi")
+ }
+}$
+
+Expected Result: Fail
+Why: (true) is not a valid boolean expression according to the grammar.
+
+Test 12: Invalid integer expression
+{
+ int a
+ a = 1 +
+}$
+
+Expected Result: Fail
+Why: Integer expressions require an expression after +.
+
+Test 13: Two expressions with no operator
+{
+ int a
+ a = 1 2
+}$
+
+Expected Result: Fail
+Why: Two expressions cannot appear next to each other without an operator.
+
+Test 14: Invalid nested expression
+{
+ a = (1 + 2)
+}$
+
+Expected Result: Fail
+Why: Parenthesized arithmetic expressions are not part of the grammar.
+
+Test 15: Missing boolop
+{
+ if (1 2) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: Boolean expressions require a boolean operator between expressions.
+
+Test 16: Extra closing brace
+{
+ int a
+}}
+$
+
+Expected Result: Fail
+Why: There is an unmatched extra }.
+
+Test 17: Statement outside block
+{
+ int a
+}
+a = 5
+$
+
+Expected Result: Fail
+Why: Statements must appear inside a block.
+
+Test 18: Invalid variable declaration order
+{
+ a int
+}$
+
+Expected Result: Fail
+Why: Variable declarations must follow the form type Id.
+
+Test 19: Invalid boolean comparison
+{
+ if (== true false) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: Boolean expressions must follow ( Expr boolop Expr ).
+
+Test 20: Invalid while syntax
+{
+ while true {
+  print("loop")
+ }
+}$
+
+Expected Result: Fail
+Why: The grammar requires a valid BooleanExpr after while.
+
+Test 21: Missing closing parenthesis in boolean expression
+{
+ if (1 == 1 {
+  print("hi")
+ }
+}$
+
+Expected Result: Fail
+Why: The boolean expression is missing a closing ).
+
+Test 22: Invalid expression in print
+{
+ print(==)
+}$
+
+Expected Result: Fail
+Why: == alone is not a valid expression.
+
+Test 23: Invalid chained addition
+{
+ int a
+ a = 1 + + 2
+}$
+
+Expected Result: Fail
+Why: The grammar does not allow consecutive + operators.
+
+Test 24: Assignment used as boolean comparison
+{
+ if (a = 1) {
+  print("bad")
+ }
+}$
+
+Expected Result: Fail
+Why: = is assignment, not a boolean operator.
+
+Test 25: Long invalid program
+{
+ int a
+ string b
+ a = 1 +
+ if (true ==) {
+  print("hello"
+ }
+ while true {
+  b = "test"
+ }
+}$
+
+Expected Result: Fail
+Why: Multiple parser errors: incomplete integer expression, incomplete boolean expression, missing parenthesis, and invalid while syntax.

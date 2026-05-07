@@ -1,0 +1,199 @@
+Parser Passing Test Cases
+Test 1
+{}$
+
+Expected Result: Pass
+
+Test 2
+{
+ int a
+}$
+
+Expected Result: Pass
+
+Test 3
+{
+ int a
+ a = 5
+}$
+
+Expected Result: Pass
+
+Test 4
+{
+ string b
+ b = "hello"
+}$
+
+Expected Result: Pass
+
+Test 5
+{
+ boolean c
+ c = true
+}$
+
+Expected Result: Pass
+
+Test 6
+{
+ print("hello")
+}$
+
+Expected Result: Pass
+
+Test 7
+{
+ int a
+ a = 1 + 2
+}$
+
+Expected Result: Pass
+
+Test 8
+{
+ if (true == false) {
+  print("no")
+ }
+}$
+
+Expected Result: Pass
+
+Test 9
+{
+ while (1 != 2) {
+  print("loop")
+ }
+}$
+
+Expected Result: Pass
+
+Test 10
+{
+ int a
+ a = 1
+ while (a != 9) {
+  a = 1 + a
+ }
+}$
+
+Expected Result: Pass
+
+Test 11
+{
+ {
+  {
+   print("nested")
+  }
+ }
+}$
+
+Expected Result: Pass
+
+Test 12
+{
+ int a
+ string b
+ boolean c
+ a = 1
+ b = "test"
+ c = false
+}$
+
+Expected Result: Pass
+
+Test 13
+{
+ if (true != false) {
+  while (1 != 2) {
+   print("hi")
+  }
+ }
+}$
+
+Expected Result: Pass
+
+Test 14
+{
+ int a
+ a = 1 + 1
+ print(a)
+}$
+
+Expected Result: Pass
+
+Test 15
+{
+ boolean b
+ b = (true == false)
+}$
+
+Expected Result: Pass
+
+Test 16
+{
+ int a
+ {
+  int b
+  {
+   int c
+   c = 3
+  }
+  b = 2
+ }
+ a = 1
+}$
+
+Expected Result: Pass
+
+Test 17
+{
+ print(true)
+ print(false)
+ print(1)
+ print("hello world")
+}$
+
+Expected Result: Pass
+
+Test 18
+{
+ if ((1 + 1) != 3) {
+  print("math")
+ }
+}$
+
+Expected Result: Pass
+
+Test 19
+{
+ int a
+ a = 1 + 2
+ if (a != 5) {
+  print("valid")
+ }
+}$
+
+Expected Result: Pass
+
+Test 20
+{
+ int a
+ string b
+ boolean c
+
+ a = 1
+ b = "hello"
+ c = (a != 2)
+
+ if (c == true) {
+  print(b)
+ }
+
+ while (a != 5) {
+  a = 1 + a
+  print(a)
+ }
+}$
+
+Expected Result: Pass
