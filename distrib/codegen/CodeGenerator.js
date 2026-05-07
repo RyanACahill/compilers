@@ -210,6 +210,14 @@ export class CodeGenerator {
             this.emit(node.value === "true" ? "01" : "00");
             return;
         }
+        if (node.name === "BooleanExpr") {
+            const temp = this.newInternalStatic("boolexpr", "boolean");
+            this.generateBooleanIntoMemory(node, temp);
+            this.emit("AD");
+            this.emit(temp);
+            this.emit("XX");
+            return;
+        }
         this.errors.push(`Code generation does not yet support expression ${node.name}.`);
     }
     generateStringIntoAccumulator(node) {
