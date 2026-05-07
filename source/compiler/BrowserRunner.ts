@@ -176,8 +176,8 @@ export class BrowserRunner {
     private static formatMachineCode(code: string[]): string {
         let output = "";
 
-        for (let i = 0; i < code.length; i += 8) {
-            const row = code.slice(i, i + 8).join(" ");
+        for (let i = 0; i < code.length; i += 16) {
+            const row = code.slice(i, i + 16).join(" ");
             output += row + "\n";
         }
 
