@@ -237,6 +237,8 @@ export class SemanticAnalyzer {
 
     private analyzeBlock(block: ASTNode): void {
         const scopeId = this.scopeCounter++;
+        block.scopeId = scopeId;
+
         this.activeScopes.push(scopeId);
 
         Logger.log(`SEMANTIC ANALYSIS → Entering scope ${scopeId}`);
@@ -276,55 +278,62 @@ export class SemanticAnalyzer {
     }
 
     private analyzeVarDecl(node: ASTNode): void {
-        const typeNode = node.children[0];
-        const idNode = node.children[1];
+    const typeNode = node.children[0];
+    const idNode = node.children[1];
 
-        const scope = this.currentScope();
+    const scope = this.currentScope();
 
-        if (this.symbolTable.lookupCurrentScope(idNode.value, scope)) {
-            this.semanticError(
-                `Identifier '${idNode.value}' has already been declared in this scope.`,
-                idNode.token
-            );
-            return;
-        }
+    node.scopeId = scope;
+    idNode.scopeId = scope;
+    idNode.semanticType = typeNode.value;
 
-        Logger.log(`SEMANTIC ANALYSIS → Declaring '${idNode.value}' as ${typeNode.value} in scope ${scope}`);
-
-        this.symbolTable.add(
-            new SymbolTableEntry(
-                idNode.value,
-                typeNode.value,
-                scope,
-                idNode.token?.line ?? 0,
-                idNode.token?.column ?? 0
-            )
+    if (this.symbolTable.lookupCurrentScope(idNode.value, scope)) {
+        this.semanticError(
+            `Identifier '${idNode.value}' has already been declared in this scope.`,
+            idNode.token
         );
+        return;
     }
+
+    Logger.log(`SEMANTIC ANALYSIS → Declaring '${idNode.value}' as ${typeNode.value} in scope ${scope}`);
+
+    this.symbolTable.add(
+        new SymbolTableEntry(
+            idNode.value,
+            typeNode.value,
+            scope,
+            idNode.token?.line ?? 0,
+            idNode.token?.column ?? 0
+        )
+    );
+}
 
     private analyzeAssignment(node: ASTNode): void {
-        const idNode = node.children[0];
-        const exprNode = node.children[1];
+    const idNode = node.children[0];
+    const exprNode = node.children[1];
 
-        const symbol = this.symbolTable.lookup(idNode.value, this.activeScopes);
+    const symbol = this.symbolTable.lookup(idNode.value, this.activeScopes);
 
-        if (!symbol) {
-            this.semanticError(`Identifier '${idNode.value}' has not been declared.`, idNode.token);
-            return;
-        }
-
-        const exprType = this.evaluateExprType(exprNode);
-
-        if (exprType && exprType !== symbol.type) {
-            this.semanticError(
-                `Type mismatch. Variable '${idNode.value}' is type '${symbol.type}' but expression is type '${exprType}'.`,
-                idNode.token
-            );
-            return;
-        }
-
-        symbol.initialized = true;
+    if (!symbol) {
+        this.semanticError(`Identifier '${idNode.value}' has not been declared.`, idNode.token);
+        return;
     }
+
+    idNode.scopeId = symbol.scope;
+    idNode.semanticType = symbol.type;
+
+    const exprType = this.evaluateExprType(exprNode);
+
+    if (exprType && exprType !== symbol.type) {
+        this.semanticError(
+            `Type mismatch. Variable '${idNode.value}' is type '${symbol.type}' but expression is type '${exprType}'.`,
+            idNode.token
+        );
+        return;
+    }
+
+    symbol.initialized = true;
+}
 
     private analyzePrint(node: ASTNode): void {
         this.evaluateExprType(node.children[0]);
@@ -348,6 +357,9 @@ export class SemanticAnalyzer {
                     this.semanticError(`Identifier '${node.value}' has not been declared.`, node.token);
                     return null;
                 }
+
+                node.scopeId = symbol.scope;
+                node.semanticType = symbol.type;
 
                 if (!symbol.initialized) {
                     this.warning(`Identifier '${node.value}' is being used before it is initialized.`, node.token);

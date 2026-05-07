@@ -4,6 +4,8 @@ export class ASTNode {
         this.value = value;
         this.token = token;
         this.children = [];
+        this.scopeId = null;
+        this.semanticType = null;
     }
     addChild(child) {
         this.children.push(child);
