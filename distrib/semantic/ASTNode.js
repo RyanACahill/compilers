@@ -10,4 +10,8 @@ export class ASTNode {
     addChild(child) {
         this.children.push(child);
     }
+    withChildren(children) {
+        this.children = children;
+        return this;
+    }
 }
