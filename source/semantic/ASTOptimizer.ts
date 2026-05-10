@@ -84,13 +84,17 @@ export class ASTOptimizer {
             const known = this.constants.get(this.key(node));
 
             if (known) {
-                Logger.log(`AST OPTIMIZATION → Constant propagation replaced '${node.value}' with '${known.value}'`);
+                const replacementValue = this.getConstantValue(known);
+
+                Logger.log(
+                    `AST OPTIMIZATION → Constant propagation replaced '${node.value}' with '${replacementValue}'`
+                );
+
                 return this.clone(known);
             }
 
             return node;
-        }
-
+}
         if (node.name === "IntExpr") {
             node.children = node.children.map(child => this.optimizeExpr(child));
 

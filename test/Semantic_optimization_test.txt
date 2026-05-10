@@ -1,0 +1,129 @@
+1. Constant folding: int expression
+{
+  int a
+  a = 1 + 2
+  print(a)
+}$
+
+Expected optimization:
+
+1 + 2 → 3
+2. Constant propagation: variable value reused
+{
+  int a
+  int b
+  a = 5
+  b = a
+  print(b)
+}$
+
+Expected optimization:
+
+b = a → b = 5
+3. Constant folding: boolean expression
+{
+  boolean b
+  b = (1 == 1)
+  print(b)
+}$
+
+Expected optimization:
+
+(1 == 1) → true
+4. Dead code elimination: if false
+{
+  if false {
+    print("bad")
+  }
+
+  print("done")
+}$
+
+Expected optimization:
+
+Remove the if false block
+5. Dead code elimination: if true
+{
+  if true {
+    print("yes")
+  }
+
+  print("done")
+}$
+
+Expected optimization:
+
+Replace if true with just its block
+6. Dead code elimination: while false
+{
+  while false {
+    print("never")
+  }
+
+  print("done")
+}$
+
+Expected optimization:
+
+Remove the while false loop
+7. Constant propagation stops after reassignment
+{
+  int a
+  int b
+  a = 5
+  a = 6
+  b = a
+  print(b)
+}$
+
+Expected optimization:
+
+b = a → b = 6
+8. Mixed optimizations
+{
+  int a
+  boolean b
+
+  a = 1 + 2
+  b = (a == 3)
+
+  if b {
+    print(a)
+  }
+
+  while false {
+    print("no")
+  }
+}$
+
+Expected optimization:
+
+1 + 2 → 3
+a propagated into (a == 3)
+(3 == 3) → true
+if true block kept
+while false block removed
+9. Do not unroll unsafe loop
+{
+  int a
+  a = 1
+
+  while (a != 5) {
+    print(a)
+    a = 1 + a
+  }
+}$
+
+Expected:
+
+Optimizer should log that loop unrolling was skipped because loop count is not safely known.
+10. String propagation
+{
+  string s
+  s = "hello"
+  print(s)
+}$
+
+Expected optimization:
+
+print(s) → print("hello")
