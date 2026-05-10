@@ -5,6 +5,7 @@ import { ErrorReporter } from "../util/ErrorReporter.js";
 import { SemanticAnalyzer } from "../semantic/SemanticAnalyzer.js";
 import type { Diagnostic } from "../util/ErrorReporter.js";
 import { CodeGenerator } from "../codegen/CodeGenerator.js";
+import { ASTOptimizer } from "../semantic/ASTOptimizer.js";
 
 interface ProgramInfo {
     source: string;
@@ -129,14 +130,20 @@ export class BrowserRunner {
             }
 
             if (semanticResult.success) {
-                Logger.log("\nAST:");
+                Logger.log("\nAST Before Optimization:");
                 Logger.log(semanticResult.ast?.toString() ?? "");
+
+                const optimizer = new ASTOptimizer();
+                const optimizedAst = optimizer.optimize(semanticResult.ast!);
+
+                Logger.log("\nAST After Optimization:");
+                Logger.log(optimizedAst.toString());
 
                 Logger.log("\nSymbol Table:");
                 Logger.log(semanticResult.symbolTable?.toString() ?? "");
 
                 const codeGenerator = new CodeGenerator();
-                const codeGenResult = codeGenerator.generate(semanticResult.ast!);
+                const codeGenResult = codeGenerator.generate(optimizedAst);
 
                 if (codeGenResult.success) {
                     Logger.log("\nCode Generation successful.");

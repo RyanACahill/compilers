@@ -15,4 +15,9 @@ export class ASTNode {
     public addChild(child: ASTNode): void {
         this.children.push(child);
     }
+
+    public withChildren(children: ASTNode[]): ASTNode {
+        this.children = children;
+        return this;
+    }
 }
