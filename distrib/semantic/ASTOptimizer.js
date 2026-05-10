@@ -59,10 +59,11 @@ export class ASTOptimizer {
         return node;
     }
     optimizeExpr(node) {
+        var _a;
         if (node.name === "Id") {
             const known = this.constants.get(this.key(node));
             if (known) {
-                const replacementValue = this.getConstantValue(known);
+                const replacementValue = (_a = this.getConstantValue(known)) !== null && _a !== void 0 ? _a : known.value;
                 Logger.log(`AST OPTIMIZATION → Constant propagation replaced '${node.value}' with '${replacementValue}'`);
                 return this.clone(known);
             }

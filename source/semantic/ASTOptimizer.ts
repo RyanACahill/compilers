@@ -84,7 +84,7 @@ export class ASTOptimizer {
             const known = this.constants.get(this.key(node));
 
             if (known) {
-                const replacementValue = this.getConstantValue(known);
+                const replacementValue = this.getConstantValue(known) ?? known.value;
 
                 Logger.log(
                     `AST OPTIMIZATION → Constant propagation replaced '${node.value}' with '${replacementValue}'`
