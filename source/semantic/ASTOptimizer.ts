@@ -67,9 +67,11 @@ export class ASTOptimizer {
 
         node.children[1] = exprNode;
 
-        if (this.isConstant(exprNode)) {
+       const constantValue = this.getConstantValue(exprNode);
+
+        if (constantValue !== null) {
             this.constants.set(this.key(idNode), this.clone(exprNode));
-            Logger.log(`AST OPTIMIZATION → Constant propagation saved '${idNode.value}' = ${exprNode.value}`);
+            Logger.log(`AST OPTIMIZATION → Constant propagation saved '${idNode.value}' = ${constantValue}`);
         } else {
             this.constants.delete(this.key(idNode));
         }
@@ -93,17 +95,17 @@ export class ASTOptimizer {
             node.children = node.children.map(child => this.optimizeExpr(child));
 
             if (node.children.length === 3) {
-                const left = node.children[0];
-                const right = node.children[2];
+                const leftValue = this.getConstantValue(node.children[0]);
+                const rightValue = this.getConstantValue(node.children[2]);
 
-                if (left.name === "Digit" && right.name === "Digit") {
-                    const value = Number(left.value) + Number(right.value);
+                if (leftValue !== null && rightValue !== null) {
+                    const value = Number(leftValue) + Number(rightValue);
 
-                    Logger.log(`AST OPTIMIZATION → Constant folded ${left.value} + ${right.value} to ${value}`);
+                    Logger.log(`AST OPTIMIZATION → Constant folded ${leftValue} + ${rightValue} to ${value}`);
 
-                    return new ASTNode("IntExpr", "", node.token).withChildren([
-                        new ASTNode("Digit", String(value), node.token)
-                    ]);
+                    const folded = new ASTNode("IntExpr", "", node.token);
+                    folded.addChild(new ASTNode("Digit", String(value), node.token));
+                    return folded;
                 }
             }
 
@@ -118,17 +120,28 @@ export class ASTOptimizer {
                 const op = node.children[1];
                 const right = node.children[2];
 
-                if (this.isConstant(left) && this.isConstant(right)) {
+                const leftValue = this.getConstantValue(left);
+                const rightValue = this.getConstantValue(right);
+
+                if (leftValue !== null && rightValue !== null) {
                     const result = op.value === "=="
-                        ? left.value === right.value
-                        : left.value !== right.value;
+                        ? leftValue === rightValue
+                        : leftValue !== rightValue;
 
                     Logger.log(
                         `AST OPTIMIZATION → Constant folded boolean expression to ${result}`
                     );
 
                     const boolExpr = new ASTNode("BooleanExpr", "", node.token);
-                    boolExpr.addChild(new ASTNode("BoolVal", result ? "true" : "false", node.token));
+
+                    boolExpr.addChild(
+                        new ASTNode(
+                            "BoolVal",
+                            result ? "true" : "false",
+                            node.token
+                        )
+                    );
+
                     return boolExpr;
                 }
             }
@@ -165,8 +178,16 @@ export class ASTOptimizer {
     }
 
     private optimizeWhile(node: ASTNode): ASTNode {
+        const oldConstants = new Map(this.constants);
+
         const condition = this.optimizeExpr(node.children[0]);
+
+        // Do not trust constants across loops.
+        this.constants.clear();
+
         const block = this.optimizeNode(node.children[1]);
+
+        this.constants = oldConstants;
 
         node.children[0] = condition;
         node.children[1] = block;
@@ -178,27 +199,43 @@ export class ASTOptimizer {
                 Logger.log("AST OPTIMIZATION → Dead code elimination removed while(false) loop.");
                 return new ASTNode("DeadCode");
             }
-
-            if (boolVal.value === "true") {
-                Logger.log("AST OPTIMIZATION → Skipped loop unrolling for while(true) to avoid infinite expansion.");
-                return node;
-            }
         }
 
         Logger.log("AST OPTIMIZATION → Loop unrolling skipped unless loop count is statically known.");
         return node;
     }
-
     private isConstant(node: ASTNode): boolean {
-        return (
-            node.name === "StringExpr" ||
-            node.name === "Digit" ||
-            node.name === "BoolVal" ||
-            (node.name === "IntExpr" && node.children.length === 1 && node.children[0].name === "Digit") ||
-            (node.name === "BooleanExpr" && node.children.length === 1 && node.children[0].name === "BoolVal")
-        );
-    }
+    return (
+        node.name === "StringExpr" ||
+        node.name === "Digit" ||
+        node.name === "BoolVal" ||
+        this.getConstantValue(node) !== null
+    );
+}
 
+    private getConstantValue(node: ASTNode): string | null {
+        if (node.name === "Digit") return node.value;
+        if (node.name === "StringExpr") return node.value;
+        if (node.name === "BoolVal") return node.value;
+
+        if (
+            node.name === "IntExpr" &&
+            node.children.length === 1 &&
+            node.children[0].name === "Digit"
+        ) {
+            return node.children[0].value;
+        }
+
+        if (
+            node.name === "BooleanExpr" &&
+            node.children.length === 1 &&
+            node.children[0].name === "BoolVal"
+        ) {
+            return node.children[0].value;
+        }
+
+        return null;
+    }
     private key(node: ASTNode): string {
         return `${node.value}@${node.scopeId ?? "unknown"}`;
     }
