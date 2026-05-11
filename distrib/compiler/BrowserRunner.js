@@ -8,6 +8,8 @@ import { ASTOptimizer } from "../semantic/ASTOptimizer.js";
 import { TypeScriptCodeGenerator } from "../codegen/TypeScriptCodeGenerator.js";
 import { LLVMIRCodeGenerator } from "../codegen/LLVMIRCodeGenerator.js";
 import { JavaCodeGenerator } from "../codegen/JavaCodeGenerator.js";
+import { LexerRepair } from "../lexer/LexerRepair.js";
+import { ParserRepair } from "../parser/ParserRepair.js";
 export class BrowserRunner {
     static run(source) {
         var _a, _b, _c, _d;
@@ -51,8 +53,10 @@ export class BrowserRunner {
                 continue;
             }
             Logger.log(`\n================ PROGRAM ${program.number} ================`);
+            const lexerRepairResult = LexerRepair.repair(program.source);
+            const sourceForLex = lexerRepairResult.repairedSource;
             const lexer = new Lexer();
-            const lexResult = lexer.lex(program.source, program.startLine);
+            const lexResult = lexer.lex(sourceForLex, program.startLine);
             Logger.log(lexResult.success ? "\nLex successful." : "\nLex unsuccessful.");
             if (lexResult.errors.length > 0 || lexResult.warnings.length > 0) {
                 this.printSummary("Lex", lexResult.errors, lexResult.warnings, []);
@@ -62,8 +66,10 @@ export class BrowserRunner {
                 codeGenOutput += `PROGRAM ${program.number}: Code Generation skipped due to lex errors.\n\n`;
                 continue;
             }
+            const parserRepairResult = ParserRepair.repair(lexResult.tokens);
+            const tokensForParse = parserRepairResult.tokens;
             const parser = new Parser();
-            const parseResult = parser.parse(lexResult.tokens);
+            const parseResult = parser.parse(tokensForParse);
             Logger.log(parseResult.success ? "\nParse successful." : "\nParse unsuccessful.");
             if (parseResult.errors.length > 0 ||
                 parseResult.warnings.length > 0 ||
@@ -80,7 +86,7 @@ export class BrowserRunner {
                 Logger.log(parseResult.cst.toString());
             }
             const semanticAnalyzer = new SemanticAnalyzer();
-            const semanticResult = semanticAnalyzer.analyze(lexResult.tokens);
+            const semanticResult = semanticAnalyzer.analyze(tokensForParse);
             Logger.log(semanticResult.success
                 ? "\nSemantic Analysis successful."
                 : "\nSemantic Analysis unsuccessful.");
