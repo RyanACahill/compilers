@@ -39,7 +39,7 @@ export class ParserRepair {
                 }
                 if (sawLeftParen &&
                     depth > 0 &&
-                    (current.type === TokenType.RBrace || current.type === TokenType.EOP)) {
+                    (current.type === TokenType.RBrace || current.type === TokenType.LBrace || current.type === TokenType.EOP)) {
                     tokens.splice(j, 0, this.syntheticToken(TokenType.RParen, ")", current));
                     messages.push(`Inserted missing ')' before '${current.value}' at file (${current.line}:${current.column}).`);
                     return;

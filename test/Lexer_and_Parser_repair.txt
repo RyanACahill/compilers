@@ -1,0 +1,123 @@
+Lexer Repair Test Cases
+
+1. Missing End Of Program Marker
+Input
+{
+  print("hello")
+}
+Expected
+LEXER REPAIR → Inserted missing end-of-program marker '$'.
+Rewritten Source
+{
+  print("hello")
+}$
+Result
+Lex successful.
+
+2. Smart Quotes Repair
+Input
+{
+  print(“hello”)
+}$
+Expected
+LEXER REPAIR → Converted smart quotes to normal double quotes.
+Rewritten Source
+{
+  print("hello")
+}$
+Result
+Lex successful.
+
+3. Multiple Smart Quotes
+Input
+{
+  print(“hello”)
+  print(“world”)
+}$
+Expected
+LEXER REPAIR → Converted smart quotes to normal double quotes.
+Result
+Lex successful.
+
+4. Missing $ With Smart Quotes
+Input
+{
+  print(“hello”)
+}
+Expected
+LEXER REPAIR → Converted smart quotes to normal double quotes.
+LEXER REPAIR → Inserted missing end-of-program marker '$'.
+Result
+Lex successful.
+
+5. Illegal Character (Should NOT Repair)
+Input
+{
+  print(@)
+}$
+Expected
+LEXER ERROR
+Why
+The lexer cannot safely guess what '@' should mean.
+
+
+Parser Repair Test Cases
+
+1. Missing Right Parenthesis
+Input
+{
+  print(a
+}$
+Expected
+PARSER REPAIR → Inserted missing ')' before '}'
+Repaired Tokens
+{
+  print(a)
+}$
+Result
+Parse successful.
+
+2. Missing Right Brace
+Input
+{
+  int a
+  print(a)
+$
+Expected
+PARSER REPAIR → Inserted missing '}' before '$'
+Repaired Tokens
+{
+  int a
+  print(a)
+}$
+Result
+Parse successful.
+
+3. Nested Missing Brace
+Input
+{
+  {
+    print("x")
+$
+Expected
+PARSER REPAIR → Inserted missing '}' before '$'
+PARSER REPAIR → Inserted missing '}' before '$'
+Result
+Parse successful.
+
+Multiple Repairs In One Program
+
+Input
+{
+  print(“hello”
+$
+Expected
+LEXER REPAIR → Converted smart quotes to normal double quotes.
+PARSER REPAIR → Inserted missing ')' before '$'
+PARSER REPAIR → Inserted missing '}' before '$'
+Final Repaired Program
+{
+  print("hello")
+}$
+Result
+Parse successful.
