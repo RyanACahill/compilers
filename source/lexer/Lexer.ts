@@ -3,11 +3,7 @@ import { TokenType } from "./TokenType.js";
 import { Logger } from "../util/Logger.js";
 import { Diagnostic, ErrorReporter } from "../util/ErrorReporter.js";
 
-/**
- * Encapsulates the result of lexical analysis for a single program.
- * This structure allows the compiler pipeline to cleanly decide whether
- * to proceed to parsing or halt due to errors.
- */
+
 export interface LexResult {
     tokens: Token[];
     errors: Diagnostic[];
@@ -16,8 +12,6 @@ export interface LexResult {
 }
 
 /**
- * The Lexer is responsible for transforming raw source code into a sequence
- * of tokens based on the language grammar.
  *
  * Key responsibilities:
  * - Recognize all valid tokens (keywords, identifiers, literals, symbols)

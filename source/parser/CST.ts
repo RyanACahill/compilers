@@ -1,9 +1,6 @@
 import { CSTNode } from "./CSTNode.js";
 
-/**
- * CST manages construction of the Concrete Syntax Tree during parsing.
- * The parser adds branch nodes for grammar rules and leaf nodes for matched tokens.
- */
+
 export class CST {
     private root: CSTNode | null = null;
     private current: CSTNode | null = null;

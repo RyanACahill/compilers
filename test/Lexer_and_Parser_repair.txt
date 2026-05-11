@@ -105,6 +105,27 @@ PARSER REPAIR → Inserted missing '}' before '$'
 Result
 Parse successful.
 
+
+4. Missing Identifier (Should NOT Repair)
+Input
+{
+  int
+}$
+Expected
+PARSER ERROR
+Why
+The parser cannot safely invent an identifier name.
+
+5. Missing Expression (Should NOT Repair)
+Input
+{
+  a =
+}$
+Expected
+PARSER ERROR
+Why
+The parser cannot safely invent an expression.
+
 Multiple Repairs In One Program
 
 Input

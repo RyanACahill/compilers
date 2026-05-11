@@ -3,8 +3,6 @@ import { TokenType } from "./TokenType.js";
 import { Logger } from "../util/Logger.js";
 import { ErrorReporter } from "../util/ErrorReporter.js";
 /**
- * The Lexer is responsible for transforming raw source code into a sequence
- * of tokens based on the language grammar.
  *
  * Key responsibilities:
  * - Recognize all valid tokens (keywords, identifiers, literals, symbols)

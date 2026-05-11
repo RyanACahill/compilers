@@ -2,27 +2,34 @@
 <html>
 <head>
     <meta charset="UTF-8">
+
+    <!-- Makes the page scale correctly on different screen sizes. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Compiler</title>
 
     <style>
+        /* Basic page styling. Monospace font makes compiler output easier to read. */
         body {
             font-family: monospace;
             margin: 20px;
         }
 
+        /* Places the input and main output panels side by side. */
         .container {
             display: flex;
             gap: 20px;
             align-items: flex-start;
         }
 
+        /* Reusable vertical panel layout for each compiler section. */
         .panel {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
 
+        /* Shared styling for the source input box and output windows. */
         textarea, pre {
             width: 100%;
             height: 400px;
@@ -36,11 +43,13 @@
             white-space: pre;
         }
 
+        /* Smaller output area specifically for generated 6502 code. */
         #codegenOutput {
             height: 220px;
             background: #eef7ee;
         }
 
+        /* Compile button styling. */
         button {
             margin: 15px 0;
             padding: 10px 16px;
@@ -57,58 +66,82 @@
 
 <h2>CMPT 432 Compiler</h2>
 
+<!-- Main compiler workspace: source input on the left, compiler logs on the right. -->
 <div class="container">
     <div class="panel">
         <label for="input"><h3>Input</h3></label>
-        <textarea id="input" placeholder="Enter your program here..." title="Compiler input"></textarea>
+
+        <!-- User enters source code for the compiler here. -->
+        <textarea
+            id="input"
+            placeholder="Enter your program here..."
+            title="Compiler input"
+        ></textarea>
     </div>
 
     <div class="panel">
         <label for="output"><h3>Compiler Output</h3></label>
+
+        <!-- Displays lexer, parser, semantic analysis, and diagnostic output. -->
         <pre id="output"></pre>
     </div>
 </div>
 
+<!-- Runs the compiler using the current textarea contents. -->
 <button id="compileBtn">Compile</button>
 
 <div class="panel">
     <label for="codegenOutput"><h3>Code Generation Output</h3></label>
+
+    <!-- Displays generated machine/codegen output. -->
     <pre id="codegenOutput"></pre>
 </div>
 
 <div class="panel">
     <label for="tsOutput"><h3>Generated TypeScript</h3></label>
+
+    <!-- Displays generated TypeScript output. -->
     <pre id="tsOutput"></pre>
 </div>
+
 <div class="panel">
     <label for="llvmOutput"><h3>Generated LLVM IR</h3></label>
+
+    <!-- Displays generated LLVM intermediate representation. -->
     <pre id="llvmOutput"></pre>
 </div>
+
 <div class="panel">
     <label for="javaOutput"><h3>Generated Java</h3></label>
+
+    <!-- Displays generated Java code output. -->
     <pre id="javaOutput"></pre>
 </div>
 
 <script type="module">
-import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=8";
+    // Imports the browser-based compiler runner.
+    // The query string helps bypass browser caching during development.
+    import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=8";
 
-const button = document.getElementById("compileBtn");
-const input = document.getElementById("input");
-const output = document.getElementById("output");
-const codegenOutput = document.getElementById("codegenOutput");
-const tsOutput = document.getElementById("tsOutput");
-const llvmOutput = document.getElementById("llvmOutput");
-const javaOutput = document.getElementById("javaOutput");
+    // Grab references to all interactive and output elements.
+    const button = document.getElementById("compileBtn");
+    const input = document.getElementById("input");
+    const output = document.getElementById("output");
+    const codegenOutput = document.getElementById("codegenOutput");
+    const tsOutput = document.getElementById("tsOutput");
+    const llvmOutput = document.getElementById("llvmOutput");
+    const javaOutput = document.getElementById("javaOutput");
 
-button.addEventListener("click", () => {
-    const result = CompilerModule.BrowserRunner.run(input.value);
+    // Compile the input program and display each compiler output section.
+    button.addEventListener("click", () => {
+        const result = CompilerModule.BrowserRunner.run(input.value);
 
-    output.textContent = result.fullOutput;
-    codegenOutput.textContent = result.codeGenOutput;
-    tsOutput.textContent = result.tsOutput;
-    llvmOutput.textContent = result.llvmirOutput;
-    javaOutput.textContent = result.javaOutput;
-});
+        output.textContent = result.fullOutput;
+        codegenOutput.textContent = result.codeGenOutput;
+        tsOutput.textContent = result.tsOutput;
+        llvmOutput.textContent = result.llvmirOutput;
+        javaOutput.textContent = result.javaOutput;
+    });
 </script>
 
 </body>

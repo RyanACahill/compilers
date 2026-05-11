@@ -1,5 +1,6 @@
 import { Logger } from "../util/Logger.js";
 
+// Represents the result of attempting to safely repair lexer input.
 export interface LexerRepairResult {
     originalSource: string;
     repairedSource: string;
@@ -8,12 +9,15 @@ export interface LexerRepairResult {
 }
 
 export class LexerRepair {
+
+    // Performs safe lexer-level repairs without changing the meaning of the program.
     public static repair(source: string): LexerRepairResult {
         const originalSource = source;
         const messages: string[] = [];
 
         let repairedSource = source;
 
+        // Replace curly “smart quotes” with normal double quotes so strings lex correctly.
         const smartQuoteFixed = repairedSource.replace(/[“”]/g, "\"");
 
         if (smartQuoteFixed !== repairedSource) {
@@ -21,14 +25,16 @@ export class LexerRepair {
             messages.push("Converted smart quotes to normal double quotes.");
         }
 
+        // If the source is not empty and does not end with $, add the required end marker.
         if (repairedSource.trim().length > 0 && !repairedSource.trim().endsWith("$")) {
             repairedSource = repairedSource.trim() + "$";
             messages.push("Inserted missing end-of-program marker '$'.");
         }
 
-
+        // Track whether any repair actually changed the source code.
         const changed = originalSource !== repairedSource;
 
+        // Log repair details only if a change was made.
         if (changed) {
             Logger.log("\nLEXER REPAIR → Safe lexer repair applied.");
 
@@ -40,6 +46,7 @@ export class LexerRepair {
             Logger.log(repairedSource);
         }
 
+        // Return both the original and repaired source along with repair messages.
         return {
             originalSource,
             repairedSource,
