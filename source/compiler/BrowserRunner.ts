@@ -8,6 +8,7 @@ import { CodeGenerator } from "../codegen/CodeGenerator.js";
 import { ASTOptimizer } from "../semantic/ASTOptimizer.js";
 import { TypeScriptCodeGenerator } from "../codegen/TypeScriptCodeGenerator.js";
 import { LLVMIRCodeGenerator } from "../codegen/LLVMIRCodeGenerator.js";
+import { JavaCodeGenerator } from "../codegen/JavaCodeGenerator.js";
 
 interface ProgramInfo {
     source: string;
@@ -20,6 +21,7 @@ export interface BrowserRunResult {
     codeGenOutput: string;
     tsOutput: string;
     llvmirOutput: string;
+    javaOutput: string;
 }
 
 export class BrowserRunner {
@@ -29,6 +31,7 @@ export class BrowserRunner {
 
         let codeGenOutput = "";
         let llvmirOutput = "";
+        let javaOutput = "";
 
         const programs: ProgramInfo[] = [];
 
@@ -199,6 +202,30 @@ export class BrowserRunner {
 
                         llvmirOutput += "\n";
                     }
+
+                    const javaGenerator = new JavaCodeGenerator();
+                    const javaResult = javaGenerator.generate(optimizedAst);
+
+                    if (javaResult.success) {
+                        Logger.log("\nJava Code Generation successful.");
+
+                        Logger.log("\nGenerated Java Source:");
+                        Logger.log(javaResult.source);
+
+                        javaOutput += `PROGRAM ${program.number}\n`;
+                        javaOutput += javaResult.source + "\n\n";
+                    } else {
+                        Logger.log("\nJava Code Generation unsuccessful.");
+
+                        javaOutput += `PROGRAM ${program.number}: Java Code Generation unsuccessful.\n`;
+
+                        for (const error of javaResult.errors) {
+                            Logger.error(error);
+                            javaOutput += `- ${error}\n`;
+                        }
+
+                        javaOutput += "\n";
+                    }
                 } else {
                     Logger.log("\nCode Generation unsuccessful.");
                     Logger.log("\nCode Generation Errors:");
@@ -224,7 +251,8 @@ export class BrowserRunner {
             fullOutput: Logger.getOutput(),
             codeGenOutput: codeGenOutput.trim(),
             tsOutput: tsOutput.trim(),
-            llvmirOutput: llvmirOutput.trim()
+            llvmirOutput: llvmirOutput.trim(),
+            javaOutput: javaOutput.trim()
         };
     }
 

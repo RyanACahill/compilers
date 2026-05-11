@@ -84,9 +84,13 @@
     <label for="llvmOutput"><h3>Generated LLVM IR</h3></label>
     <pre id="llvmOutput"></pre>
 </div>
+<div class="panel">
+    <label for="javaOutput"><h3>Generated Java</h3></label>
+    <pre id="javaOutput"></pre>
+</div>
 
 <script type="module">
-import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=7";
+import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=8";
 
 const button = document.getElementById("compileBtn");
 const input = document.getElementById("input");
@@ -94,6 +98,7 @@ const output = document.getElementById("output");
 const codegenOutput = document.getElementById("codegenOutput");
 const tsOutput = document.getElementById("tsOutput");
 const llvmOutput = document.getElementById("llvmOutput");
+const javaOutput = document.getElementById("javaOutput");
 
 button.addEventListener("click", () => {
     const result = CompilerModule.BrowserRunner.run(input.value);
@@ -102,6 +107,7 @@ button.addEventListener("click", () => {
     codegenOutput.textContent = result.codeGenOutput;
     tsOutput.textContent = result.tsOutput;
     llvmOutput.textContent = result.llvmirOutput;
+    javaOutput.textContent = result.javaOutput;
 });
 </script>
 
