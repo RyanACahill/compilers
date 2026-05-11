@@ -158,6 +158,23 @@ export class BrowserRunner {
 
                     codeGenOutput += `PROGRAM ${program.number}\n`;
                     codeGenOutput += formattedCode + "\n\n";
+
+                    const tsGenerator = new TypeScriptCodeGenerator();
+                    const tsResult = tsGenerator.generate(semanticResult.ast!);
+                    if (tsResult.success) {
+                        Logger.log("\nTypeScript Code Generation successful.");
+
+                        Logger.log("\nGenerated TypeScript Source:");
+                        Logger.log(tsResult.source);
+                        tsOutput += `PROGRAM ${program.number}\n`;
+                        tsOutput += tsResult.source + "\n\n";
+                    } else {
+                        Logger.log("\nTypeScript Code Generation unsuccessful.");
+
+                        for (const error of tsResult.errors) {
+                            Logger.error(error);
+                        }
+                    }
                 } else {
                     Logger.log("\nCode Generation unsuccessful.");
                     Logger.log("\nCode Generation Errors:");
@@ -176,22 +193,7 @@ export class BrowserRunner {
                 codeGenOutput += `PROGRAM ${program.number}: Code Generation skipped due to semantic errors.\n\n`;
             }
 
-            const tsGenerator = new TypeScriptCodeGenerator();
-            const tsResult = tsGenerator.generate(semanticResult.ast!);
-            if (tsResult.success) {
-                Logger.log("\nTypeScript Code Generation successful.");
-
-                Logger.log("\nGenerated TypeScript Source:");
-                Logger.log(tsResult.source);
-                tsOutput += `PROGRAM ${program.number}\n`;
-                tsOutput += tsResult.source + "\n\n";
-            } else {
-                Logger.log("\nTypeScript Code Generation unsuccessful.");
-
-                for (const error of tsResult.errors) {
-                    Logger.error(error);
-                }
-            }
+            
         }
 
         return {
