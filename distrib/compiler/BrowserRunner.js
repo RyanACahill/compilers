@@ -5,6 +5,7 @@ import { ErrorReporter } from "../util/ErrorReporter.js";
 import { SemanticAnalyzer } from "../semantic/SemanticAnalyzer.js";
 import { CodeGenerator } from "../codegen/CodeGenerator.js";
 import { ASTOptimizer } from "../semantic/ASTOptimizer.js";
+import { TypeScriptCodeGenerator } from "../codegen/TypeScriptCodeGenerator.js";
 export class BrowserRunner {
     static run(source) {
         var _a, _b, _c, _d;
@@ -16,6 +17,7 @@ export class BrowserRunner {
         let currentLine = 1;
         let programStartLine = 1;
         let programNumber = 1;
+        let tsOutput = "";
         for (let i = 0; i < source.length; i++) {
             const char = source[i];
             currentProgram += char;
@@ -117,10 +119,26 @@ export class BrowserRunner {
                 Logger.log("Code Generation skipped due to semantic errors.");
                 codeGenOutput += `PROGRAM ${program.number}: Code Generation skipped due to semantic errors.\n\n`;
             }
+            const tsGenerator = new TypeScriptCodeGenerator();
+            const tsResult = tsGenerator.generate(semanticResult.ast);
+            if (tsResult.success) {
+                Logger.log("\nTypeScript Code Generation successful.");
+                Logger.log("\nGenerated TypeScript Source:");
+                Logger.log(tsResult.source);
+                tsOutput += `PROGRAM ${program.number}\n`;
+                tsOutput += tsResult.source + "\n\n";
+            }
+            else {
+                Logger.log("\nTypeScript Code Generation unsuccessful.");
+                for (const error of tsResult.errors) {
+                    Logger.error(error);
+                }
+            }
         }
         return {
             fullOutput: Logger.getOutput(),
-            codeGenOutput: codeGenOutput.trim()
+            codeGenOutput: codeGenOutput.trim(),
+            tsOutput: tsOutput.trim()
         };
     }
     static formatMachineCode(code) {

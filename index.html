@@ -76,6 +76,11 @@
     <pre id="codegenOutput"></pre>
 </div>
 
+<div class="panel">
+    <label for="tsOutput"><h3>Generated TypeScript</h3></label>
+    <pre id="tsOutput"></pre>
+</div>
+
 <script type="module">
 import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=5";
 
@@ -83,12 +88,14 @@ const button = document.getElementById("compileBtn");
 const input = document.getElementById("input");
 const output = document.getElementById("output");
 const codegenOutput = document.getElementById("codegenOutput");
+const tsOutput = document.getElementById("tsOutput");
 
 button.addEventListener("click", () => {
     const result = CompilerModule.BrowserRunner.run(input.value);
 
     output.textContent = result.fullOutput;
     codegenOutput.textContent = result.codeGenOutput;
+    tsOutput.textContent = result.tsOutput;
 });
 </script>
 
