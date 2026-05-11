@@ -80,15 +80,20 @@
     <label for="tsOutput"><h3>Generated TypeScript</h3></label>
     <pre id="tsOutput"></pre>
 </div>
+<div class="panel">
+    <label for="llvmOutput"><h3>Generated LLVM IR</h3></label>
+    <pre id="llvmOutput"></pre>
+</div>
 
 <script type="module">
-import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=6";
+import * as CompilerModule from "./distrib/compiler/BrowserRunner.js?v=7";
 
 const button = document.getElementById("compileBtn");
 const input = document.getElementById("input");
 const output = document.getElementById("output");
 const codegenOutput = document.getElementById("codegenOutput");
 const tsOutput = document.getElementById("tsOutput");
+const llvmOutput = document.getElementById("llvmOutput");
 
 button.addEventListener("click", () => {
     const result = CompilerModule.BrowserRunner.run(input.value);
@@ -96,6 +101,7 @@ button.addEventListener("click", () => {
     output.textContent = result.fullOutput;
     codegenOutput.textContent = result.codeGenOutput;
     tsOutput.textContent = result.tsOutput;
+    llvmOutput.textContent = result.llvmirOutput;
 });
 </script>
 

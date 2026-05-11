@@ -6,12 +6,14 @@ import { SemanticAnalyzer } from "../semantic/SemanticAnalyzer.js";
 import { CodeGenerator } from "../codegen/CodeGenerator.js";
 import { ASTOptimizer } from "../semantic/ASTOptimizer.js";
 import { TypeScriptCodeGenerator } from "../codegen/TypeScriptCodeGenerator.js";
+import { LLVMIRCodeGenerator } from "../codegen/LLVMIRCodeGenerator.js";
 export class BrowserRunner {
     static run(source) {
         var _a, _b, _c, _d;
         Logger.clear();
         Logger.verbose = true;
         let codeGenOutput = "";
+        let llvmirOutput = "";
         const programs = [];
         let currentProgram = "";
         let currentLine = 1;
@@ -118,6 +120,24 @@ export class BrowserRunner {
                             Logger.error(error);
                         }
                     }
+                    const llvmGenerator = new LLVMIRCodeGenerator();
+                    const llvmResult = llvmGenerator.generate(optimizedAst);
+                    if (llvmResult.success) {
+                        Logger.log("\nLLVM IR Code Generation successful.");
+                        Logger.log("\nGenerated LLVM IR:");
+                        Logger.log(llvmResult.source);
+                        llvmirOutput += `PROGRAM ${program.number}\n`;
+                        llvmirOutput += llvmResult.source + "\n\n";
+                    }
+                    else {
+                        Logger.log("\nLLVM IR Code Generation unsuccessful.");
+                        llvmirOutput += `PROGRAM ${program.number}: LLVM IR Code Generation unsuccessful.\n`;
+                        for (const error of llvmResult.errors) {
+                            Logger.error(error);
+                            llvmirOutput += `- ${error}\n`;
+                        }
+                        llvmirOutput += "\n";
+                    }
                 }
                 else {
                     Logger.log("\nCode Generation unsuccessful.");
@@ -138,7 +158,8 @@ export class BrowserRunner {
         return {
             fullOutput: Logger.getOutput(),
             codeGenOutput: codeGenOutput.trim(),
-            tsOutput: tsOutput.trim()
+            tsOutput: tsOutput.trim(),
+            llvmirOutput: llvmirOutput.trim()
         };
     }
     static formatMachineCode(code) {

@@ -7,6 +7,7 @@ import type { Diagnostic } from "../util/ErrorReporter.js";
 import { CodeGenerator } from "../codegen/CodeGenerator.js";
 import { ASTOptimizer } from "../semantic/ASTOptimizer.js";
 import { TypeScriptCodeGenerator } from "../codegen/TypeScriptCodeGenerator.js";
+import { LLVMIRCodeGenerator } from "../codegen/LLVMIRCodeGenerator.js";
 
 interface ProgramInfo {
     source: string;
@@ -18,6 +19,7 @@ export interface BrowserRunResult {
     fullOutput: string;
     codeGenOutput: string;
     tsOutput: string;
+    llvmirOutput: string;
 }
 
 export class BrowserRunner {
@@ -26,6 +28,7 @@ export class BrowserRunner {
         Logger.verbose = true;
 
         let codeGenOutput = "";
+        let llvmirOutput = "";
 
         const programs: ProgramInfo[] = [];
 
@@ -175,6 +178,27 @@ export class BrowserRunner {
                             Logger.error(error);
                         }
                     }
+                    const llvmGenerator = new LLVMIRCodeGenerator();
+                    const llvmResult = llvmGenerator.generate(optimizedAst);
+
+                    if (llvmResult.success) {
+                        Logger.log("\nLLVM IR Code Generation successful.");
+                        Logger.log("\nGenerated LLVM IR:");
+                        Logger.log(llvmResult.source);
+
+                        llvmirOutput += `PROGRAM ${program.number}\n`;
+                        llvmirOutput += llvmResult.source + "\n\n";
+                    } else {
+                        Logger.log("\nLLVM IR Code Generation unsuccessful.");
+                        llvmirOutput += `PROGRAM ${program.number}: LLVM IR Code Generation unsuccessful.\n`;
+
+                        for (const error of llvmResult.errors) {
+                            Logger.error(error);
+                            llvmirOutput += `- ${error}\n`;
+                        }
+
+                        llvmirOutput += "\n";
+                    }
                 } else {
                     Logger.log("\nCode Generation unsuccessful.");
                     Logger.log("\nCode Generation Errors:");
@@ -199,7 +223,8 @@ export class BrowserRunner {
         return {
             fullOutput: Logger.getOutput(),
             codeGenOutput: codeGenOutput.trim(),
-            tsOutput: tsOutput.trim()
+            tsOutput: tsOutput.trim(),
+            llvmirOutput: llvmirOutput.trim()
         };
     }
 
