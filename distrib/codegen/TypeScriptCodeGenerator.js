@@ -1,15 +1,32 @@
 import { Logger } from "../util/Logger.js";
+/**
+ * Generates TypeScript source code from the optimized AST.
+ *
+ * Responsibilities:
+ * - Convert AST nodes into TypeScript syntax
+ * - Generate typed variable declarations
+ * - Generate expressions and control flow
+ * - Produce runnable TypeScript source
+ */
 export class TypeScriptCodeGenerator {
     constructor() {
+        // Stores generated TypeScript source line-by-line.
         this.output = [];
+        // Stores code generation errors.
         this.errors = [];
+        // Tracks indentation depth for formatted output.
         this.indentLevel = 0;
     }
+    /**
+     * Entry point for TypeScript source generation.
+     */
     generate(ast) {
+        // Reset generator state.
         this.output = [];
         this.errors = [];
         this.indentLevel = 0;
         Logger.log("\nTYPESCRIPT CODE GENERATION → Starting TypeScript code generation...\n");
+        // AST root is required.
         if (!ast.root) {
             return {
                 success: false,
@@ -17,9 +34,13 @@ export class TypeScriptCodeGenerator {
                 errors: ["AST root was missing."]
             };
         }
+        /**
+         * File header comments.
+         */
         this.emitLine("// Generated TypeScript code");
         this.emitLine("// Produced from compiler AST");
         this.emitLine("");
+        // Begin recursive AST generation.
         this.generateNode(ast.root);
         Logger.log("TYPESCRIPT CODE GENERATION → Completed TypeScript code generation.\n");
         return {
@@ -28,9 +49,13 @@ export class TypeScriptCodeGenerator {
             errors: this.errors
         };
     }
+    /**
+     * Dispatches generation logic based on AST node type.
+     */
     generateNode(node) {
         switch (node.name) {
             case "Block":
+                // Generate nested block scope.
                 this.emitLine("{");
                 this.indentLevel++;
                 for (const child of node.children) {
@@ -58,22 +83,39 @@ export class TypeScriptCodeGenerator {
                 this.errors.push(`Unsupported AST node for TypeScript generation: ${node.name}`);
         }
     }
+    /**
+     * Generates TypeScript variable declarations.
+     *
+     * Example:
+     * let a_0: number = 0;
+     */
     generateVarDecl(node) {
         const typeNode = node.children[0];
         const idNode = node.children[1];
+        // Convert compiler types into TypeScript types.
         const tsType = this.mapType(typeNode.value);
+        // Generate default initialization value.
         const defaultValue = this.defaultValue(typeNode.value);
         this.emitLine(`let ${this.scopedName(idNode)}: ${tsType} = ${defaultValue};`);
     }
+    /**
+     * Generates TypeScript assignment statements.
+     */
     generateAssignment(node) {
         const idNode = node.children[0];
         const exprNode = node.children[1];
         this.emitLine(`${this.scopedName(idNode)} = ${this.generateExpr(exprNode)};`);
     }
+    /**
+     * Generates TypeScript print statements.
+     */
     generatePrint(node) {
         const exprNode = node.children[0];
         this.emitLine(`console.log(${this.generateExpr(exprNode)});`);
     }
+    /**
+     * Generates TypeScript if-statements.
+     */
     generateIf(node) {
         const condition = this.generateExpr(node.children[0]);
         this.emitLine(`if (${condition}) {`);
@@ -85,6 +127,9 @@ export class TypeScriptCodeGenerator {
         this.indentLevel--;
         this.emitLine("}");
     }
+    /**
+     * Generates TypeScript while-loops.
+     */
     generateWhile(node) {
         const condition = this.generateExpr(node.children[0]);
         this.emitLine(`while (${condition}) {`);
@@ -96,36 +141,55 @@ export class TypeScriptCodeGenerator {
         this.indentLevel--;
         this.emitLine("}");
     }
+    /**
+     * Recursively converts AST expressions
+     * into TypeScript expressions.
+     */
     generateExpr(node) {
         switch (node.name) {
             case "IntExpr":
+                // Single integer literal.
                 if (node.children.length === 1) {
                     return this.generateExpr(node.children[0]);
                 }
+                // Integer addition expression.
                 return `${this.generateExpr(node.children[0])} + ${this.generateExpr(node.children[2])}`;
             case "Digit":
                 return node.value;
             case "StringExpr":
+                // JSON.stringify safely escapes strings.
                 return JSON.stringify(node.value);
             case "BooleanExpr":
+                // Boolean literal case.
                 if (node.children.length === 1) {
                     return this.generateExpr(node.children[0]);
                 }
+                // Boolean comparison expression.
                 return `${this.generateExpr(node.children[0])} ${this.mapBoolOp(node.children[1].value)} ${this.generateExpr(node.children[2])}`;
             case "BoolVal":
                 return node.value;
             case "Id":
+                // Scoped variable reference.
                 return this.scopedName(node);
             default:
                 this.errors.push(`Unsupported expression node for TypeScript generation: ${node.name}`);
                 return "undefined";
         }
     }
+    /**
+     * Produces a unique variable name using scope IDs.
+     *
+     * Prevents collisions between nested scopes.
+     */
     scopedName(node) {
         var _a;
         const scope = (_a = node.scopeId) !== null && _a !== void 0 ? _a : 0;
         return `${node.value}_${scope}`;
     }
+    /**
+     * Maps compiler language types
+     * into TypeScript types.
+     */
     mapType(type) {
         switch (type) {
             case "int":
@@ -139,6 +203,10 @@ export class TypeScriptCodeGenerator {
                 return "unknown";
         }
     }
+    /**
+     * Returns default initialization values
+     * for TypeScript variables.
+     */
     defaultValue(type) {
         switch (type) {
             case "int":
@@ -151,14 +219,28 @@ export class TypeScriptCodeGenerator {
                 return "undefined";
         }
     }
+    /**
+     * Maps compiler boolean operators
+     * into TypeScript operators.
+     *
+     * TypeScript uses strict equality operators.
+     */
     mapBoolOp(op) {
-        if (op === "==")
+        if (op === "==") {
             return "===";
-        if (op === "!=")
+        }
+        if (op === "!=") {
             return "!==";
+        }
         this.errors.push(`Unknown boolean operator '${op}'`);
         return op;
     }
+    /**
+     * Appends a formatted line of TypeScript source.
+     *
+     * Indentation is automatically applied
+     * using the current indentation depth.
+     */
     emitLine(line) {
         const indent = "    ".repeat(this.indentLevel);
         this.output.push(indent + line);
